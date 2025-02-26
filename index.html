@@ -1,0 +1,4546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Analysis Platform</title>
+    <script src="https://unpkg.com/docx@8.0.0/build/index.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;700&display=swap">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" integrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <style>
+        /* Color Palette (Modern & Minimalist) */
+        :root {
+    --primary-bg: #f9f9fb;
+    --secondary-bg: #ffffff;
+    --text-primary: #1e293b;
+    --text-secondary: #64748b;
+    --accent-color: #4f46e5;
+    --accent-color-light: #6366f1;
+    --border-color: #e2e8f0;
+    --success-color: #16a34a;
+    --error-color: #dc2626;
+    --warning-color: #facc15;
+    --info-color: #0ea5e9;
+    --shadow-color: rgba(0, 0, 0, 0.05);
+    --dropdown-shadow: rgba(0, 0, 0, 0.1);
+    --upload-bg: #edf2f7; /* Light background for upload area */
+}
+
+/* Global Styles */
+body {
+    font-family: 'Sora', sans-serif;
+    background-color: var(--primary-bg);
+    color: var(--text-primary);
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* Layout */
+.app-container {
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    grid-template-rows: 70px 1fr;
+    min-height: 100vh; /* Changed height to min-height */
+    overflow: hidden; /* Keep this */
+    border-radius: 1.25rem;
+    box-shadow: 0 0.75rem 2.25rem var(--shadow-color);
+}
+
+/* Sidebar Styles */
+.sidebar {
+    grid-column: 1;
+    grid-row: 1 / span 2;
+    background-color: var(--secondary-bg);
+    border-right: 1px solid var(--border-color);
+    padding: 2.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    overflow-y: auto;
+    height: 100vh; /* Keep height 100vh */
+    position: sticky;
+    top: 0;
+}
+
+.sidebar-header {
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin-bottom: 2.75rem;
+    color: var(--text-primary);
+    letter-spacing: -0.025em;
+    text-align: left;
+    width: 100%;
+}
+
+.sidebar-menu {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    width: 100%;
+}
+
+.sidebar-menu-item {
+    margin-bottom: 1.25rem;
+}
+
+.sidebar-menu-link {
+    display: flex;
+    align-items: center;
+    color: var(--text-secondary);
+    text-decoration: none;
+    padding: 0.75rem 1.25rem;
+    border-radius: 0.75rem;
+    transition: background-color 0.2s ease, color 0.2s ease, transform 0.1s ease;
+    font-weight: 500;
+}
+
+.sidebar-menu-link:hover,
+.sidebar-menu-link.active {
+    background-color: var(--accent-color-light);
+    color: var(--secondary-bg);
+    transform: scale(1.03);
+}
+
+:root {
+    --accent-color-rgb: 79, 70, 229;
+}
+
+.sidebar-menu-icon {
+    margin-right: 0.75rem;
+    font-size: 1.2rem;
+    width: 24px;
+    text-align: center;
+    opacity: 0.8;
+}
+
+/* Navbar Styles */
+.navbar {
+    grid-column: 2;
+    grid-row: 1;
+    background-color: var(--secondary-bg);
+    border-bottom: 1px solid var(--border-color);
+    padding: 1.25rem 2.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 100; /* Ensure it's above the content */
+    position: sticky;
+    top: 0;
+}
+
+.navbar-title {
+    font-size: 1.5rem;
+    font-weight: 500;
+    color: var(--text-primary);
+    letter-spacing: -0.01em;
+}
+
+.user-profile {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.user-profile-name {
+    margin-right: 0;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+/* Main Content Styles */
+.main-content {
+    grid-column: 2;
+    grid-row: 2;
+    padding: 2.5rem;
+    overflow-y: auto;
+    /* height: calc(100vh - 70px); */ /* Try this first.  Subtract navbar height.  May cause a scrollbar on the <html> element */
+}
+
+/* Dashboard Layout */
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2rem;
+}
+
+.card {
+    background-color: var(--secondary-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 0.75rem;
+    padding: 2rem;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    box-shadow: 0 0.25rem 0.5rem var(--shadow-color);
+}
+
+.card:hover {
+    transform: translateY(-0.25rem);
+    box-shadow: 0 0.5rem 1rem var(--shadow-color);
+}
+
+.card-header {
+    font-size: 1.3rem;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+    color: var(--text-primary);
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 1rem;
+}
+
+/* Amazing Upload Data Styling */
+.upload-container {
+    background-color: var(--upload-bg);
+    border: 2px dashed var(--border-color);
+    border-radius: 0.75rem;
+    padding: 2rem;
+    text-align: center;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+    position: relative; /* For positioning filename */
+}
+
+.upload-container:hover {
+    background-color: var(--secondary-bg);
+    border-color: var(--accent-color);
+}
+
+.upload-icon {
+    font-size: 3rem;
+    color: var(--text-secondary);
+    margin-bottom: 1rem;
+}
+
+.upload-text {
+    color: var(--text-secondary);
+    font-size: 1.1rem;
+    font-weight: 500;
+}
+
+/* Hidden File Input */
+#fileUpload {
+    opacity: 0;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    cursor: pointer;
+}
+
+.filename {
+  position: absolute;
+  bottom: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  font-style: italic;
+}
+
+.radioClass{
+visibility: hidden;
+}
+/* Modern Custom Dropdown */
+.custom-dropdown {
+    position: relative;
+    width: 100%;
+    margin-bottom: 1.25rem;
+}
+
+.custom-dropdown select {
+    /* Reset default select styles */
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+
+    width: 100%;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    border: 1px solid var(--border-color);
+    background-color: var(--secondary-bg);
+    color: var(--text-primary);
+    font-size: 1rem;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    font-weight: 500;
+    cursor: pointer;
+    padding-right: 2.5rem; /* Space for arrow */
+}
+
+.custom-dropdown select:focus {
+    outline: none;
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 3px rgba(var(--accent-color-rgb), 0.15);
+}
+
+/* Arrow Icon */
+.custom-dropdown::after {
+    content: '\f0d7'; /* Font Awesome chevron-down */
+    font-family: FontAwesome;
+    position: absolute;
+    top: 50%;
+    right: 1rem;
+    transform: translateY(-50%);
+    color: var(--text-secondary);
+    pointer-events: none; /* Make the arrow non-interactive */
+    transition: color 0.2s ease;
+}
+
+.custom-dropdown select:hover::after,
+.custom-dropdown select:focus::after {
+    color: var(--accent-color);
+}
+
+/* Stylized Dropdown Container */
+.dropdown-container {
+    position: relative;
+    width: 97%;
+}
+
+/* Custom Dropdown List */
+.dropdown-list {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    background-color: var(--secondary-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 0.5rem;
+    box-shadow: 0 0.25rem 0.5rem var(--dropdown-shadow);
+    z-index: 10;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: none; /* Hidden by default */
+    overflow: hidden; /* Prevents rounded corners from being ignored */
+}
+
+.dropdown-container.active .dropdown-list {
+    display: block; /* Show when active */
+}
+
+/* Dropdown List Items */
+.dropdown-list li {
+    padding: 0.75rem 1.25rem;
+    cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease;
+    color: var(--text-primary);
+    font-weight: 500;
+    text-decoration: none;
+}
+
+.dropdown-list li:hover {
+    background-color: var(--accent-color-light);
+    color: var(--secondary-bg);
+}
+
+/* Selected Option Display */
+.selected-option {
+    width: 100%;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    border: 1px solid var(--border-color);
+    background-color: var(--secondary-bg);
+    color: var(--text-primary);
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    display: block;
+    position: relative;
+    text-align: left; /* Ensure text aligns to the left */
+}
+
+.selected-option::after {
+    content: '\f0d7';
+    font-family: FontAwesome;
+    position: absolute;
+    top: 50%;
+    right: 1rem;
+    transform: translateY(-50%);
+    color: var(--text-secondary);
+    pointer-events: none;
+}
+
+/* Button and other Form Elements */
+button {
+    width: 100%;
+    padding: 1rem;
+    margin-bottom: 1.25rem;
+    border-radius: 0.5rem;
+    border: none;
+    background-color: var(--accent-color);
+    color: var(--secondary-bg);
+    font-size: 1rem;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: var(--accent-color-light);
+    transform: translateY(-0.1rem);
+    box-shadow: 0 0.25rem 0.5rem var(--shadow-color);
+}
+
+ /* Code Snippets */
+code {
+    background-color: var(--code-bg);
+    color: #e2e8f0;
+    padding: 0.3rem 0.5rem;
+    border-radius: 0.4rem;
+    font-family: monospace;
+    font-size: 0.9rem;
+}
+
+/* Results Container */
+.results-container {
+    margin-top: 2rem;
+    background-color: var(--secondary-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    color: var(--text-secondary);
+    box-shadow: 0 0.25rem 0.5rem var(--shadow-color);
+}
+
+.results-container h3 {
+    color: var(--text-primary);
+    margin-bottom: 1.25rem;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 0.75rem;
+    font-weight: 600;
+}
+
+.results-container p {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.8rem 0;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.results-container p:last-child {
+    border-bottom: none;
+}
+
+/* Image Styles */
+img {
+    max-width: 100%;
+    border-radius: 0.6rem;
+    border: 1px solid var(--border-color);
+    margin-top: 1.25rem;
+    box-shadow: 0 0.25rem 0.5rem var(--shadow-color);
+}
+
+/* Status Messages */
+.status {
+    margin-top: 1.5rem;
+    padding: 1rem 1.5rem;
+    border-radius: 0.6rem;
+    font-size: 0.9rem;
+    text-align: center;
+    font-weight: 500;
+}
+
+.status.success {
+    background-color: rgba(22, 163, 74, 0.1);
+    color: var(--success-color);
+    border: 1px solid var(--success-color);
+}
+.classLI{
+    margin-left: 6%;
+}
+
+.status.error {
+    background-color: rgba(220, 38, 38, 0.1);
+    color: var(--error-color);
+    border: 1px solid var(--error-color);
+}
+
+/* Loading Indicator */
+.loading {
+    display: inline-block;
+    width: 22px;
+    height: 22px;
+    border: 3px solid rgba(79, 70, 229, 0.3);
+    border-radius: 50%;
+    border-top-color: var(--accent-color);
+    animation: spin 1s linear infinite;
+    margin-right: 0.75rem;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+ /* No Outlines for Focus */
+*:focus {
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+ /* Explanation Styling */
+.explanation-container {
+    margin-top: 1rem; /* Reduced margin */
+    background-color: var(--primary-bg); /* Lighter background */
+    border: 1px solid var(--border-color);
+    border-radius: 0.75rem;
+    padding: 1rem; /* Reduced padding */
+    color: var(--text-secondary); /* Slightly darker text */
+    box-shadow: 0 0.125rem 0.25rem var(--shadow-color); /* Reduced shadow */
+    font-size: 0.9rem; /* Reduced font size */
+    line-height: 1.5; /* Adjusted line height */
+    width: 70%;
+}
+
+.explanation-container h3 {
+    color: var(--accent-color); /* Accent color for the title */
+    margin-bottom: 0.75rem; /* Reduced margin */
+    border-bottom: 1px dashed var(--border-color); /* Dashed border */
+    padding-bottom: 0.4rem; /* Reduced padding */
+    font-weight: 600;
+    font-size: 1rem; /* Reduced font size */
+}
+
+.explanation-container p {
+    margin-bottom: 0.75rem; /* Reduced margin */
+}
+
+/* Code Editor Styling */
+.code-editor-container {
+    margin-top: 1.25rem;
+    border: 1px solid var(--border-color);
+    border-radius: 0.5rem;
+    overflow: hidden;
+}
+
+.code-editor {
+    width: 100%;
+    min-height: 150px; /* Or whatever height you prefer */
+    padding: 1rem;
+    font-family: monospace;
+    font-size: 0.9rem;
+    border: none;
+    background-color: var(--secondary-bg);
+    color: var(--text-primary);
+    resize: vertical;
+    box-sizing: border-box; /* Important for width: 100% to work correctly with padding */
+}
+
+.code-editor:focus {
+    outline: none;
+}
+
+/* Data Input Styling */
+.data-input-section {
+    margin-top: 2rem;
+    background-color: var(--secondary-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    box-shadow: 0 0.25rem 0.5rem var(--shadow-color);
+}
+
+.data-input-section h3 {
+    color: var(--text-primary);
+    margin-bottom: 1rem;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 0.75rem;
+    font-weight: 600;
+}
+
+.data-input-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1rem;
+    gap: 1rem;
+}
+
+.data-input-label {
+    width: 120px; /* Adjust width as needed */
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.data-input {
+    width: 100%;
+    padding: 0.75rem;
+    border-radius: 0.5rem;
+    border: 1px solid var(--border-color);
+    background-color: var(--primary-bg);
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    font-weight: 500;
+    box-sizing: border-box;
+}
+.file-path-info {
+    margin: 1rem;
+    font-size: 0.9rem;
+    color: #ffffff;
+    font-style: italic;
+    background-color: #ababab;
+
+}
+
+.scatter-plot-container {
+     display: grid;
+     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* Responsive columns */
+     gap: 1rem;
+     margin-top: 1rem;
+}
+
+
+/* Responsive Design Adjustments */
+@media (max-width: 768px) {
+    .app-container {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto 70px 1fr;
+    }
+
+    .sidebar {
+        grid-column: 1;
+        grid-row: 1;
+        border-right: none;
+        border-bottom: 1px solid var(--border-color);
+        position: static;
+        height: auto;
+        overflow-y: auto;
+        padding: 1.5rem;
+    }
+
+    .navbar {
+        grid-column: 1;
+        grid-row: 2;
+        padding: 1rem 1.5rem;
+    }
+
+    .main-content {
+        grid-column: 1;
+        grid-row: 3;
+        padding: 1.5rem;
+    }
+
+    .dashboard-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .sidebar-header {
+        margin-bottom: 1.5rem;
+    }
+
+    .sidebar-menu-item {
+        margin-bottom: 0.75rem;
+    }
+
+    .sidebar-menu-link {
+        padding: 0.6rem 1rem;
+        font-size: 0.9rem;
+    }
+
+    .navbar-title {
+        font-size: 1.1rem;
+    }
+
+    .user-profile-name {
+        font-size: 0.9rem;
+    }
+
+     /* Form element adjustments for smaller screens */
+    .custom-dropdown select,
+    button
+   {
+        padding: 0.9rem;
+        font-size: 0.9rem;
+        margin-bottom: 1rem;
+    }
+
+    .results-container {
+        margin-top: 1.5rem;
+        padding: 1rem;
+    }
+
+    .results-container h3 {
+        font-size: 1.1rem;
+        margin-bottom: 0.8rem;
+        padding-bottom: 0.6rem;
+    }
+
+    .results-container p {
+        padding: 0.6rem 0;
+        font-size: 0.9rem;
+    }
+    
+}
+
+/* Section Visibility (Hidden by Default) */
+.analysis-section {
+    display: none;
+}
+
+.analysis-section.active {
+    display: block;
+}
+
+/* New Styles for Separated Explanations */
+.results-section {
+    margin-top: 2rem;
+}
+
+.explanation-section {
+    margin-top: 2rem;
+}
+.tab-container {
+display: flex;
+gap: 10px;
+margin-bottom: 20px;
+}
+
+.tab-button {
+background: #007bff;
+color: white;
+border: none;
+padding: 10px;
+cursor: pointer;
+}
+
+.tab-button.active {
+background: #0056b3;
+}
+
+.dataset-tab-content {
+display: none;
+}
+
+.results-section {
+margin-top: 20px;
+}
+
+table {
+width: 100%;
+border-collapse: collapse;
+margin-top: 10px;
+}
+
+th, td {
+border: 1px solid #ddd;
+padding: 8px;
+text-align: left;
+}
+
+th {
+background: #f4f4f4;
+}
+.dropdown-list li {
+    margin-left: 50px;
+}
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            Data Insights
+        </div>
+        <ul class="sidebar-menu">
+            <li class="sidebar-menu-item">
+                <a href="#uploadSection" class="sidebar-menu-link" onclick="showSection('uploadSection')">
+                    <i class="sidebar-menu-icon fas fa-upload"></i>
+                    Upload Data
+                </a>
+            </li>
+            <li class="sidebar-menu-item">
+                <a href="#regressionSection" class="sidebar-menu-link" onclick="showSection('regressionSection')">
+                    <i class="sidebar-menu-icon fas fa-chart-line"></i>
+                    Regression
+                </a>
+            </li>
+            <li class="sidebar-menu-item">
+                <a href="#classificationSection" class="sidebar-menu-link" onclick="showSection('classificationSection')">
+                    <i class="sidebar-menu-icon fas fa-th"></i>
+                    Classification
+                </a>
+            </li>
+            <li class="sidebar-menu-item">
+                <a href="#clusteringSection" class="sidebar-menu-link" onclick="showSection('clusteringSection')">
+                    <i class="sidebar-menu-icon fas fa-project-diagram"></i>
+                    Clustering
+                </a>
+            </li>
+            <li class="sidebar-menu-item">
+                <a href="#datasetSection" class="sidebar-menu-link" onclick="showSection('datasetSection')">
+                    <i class="sidebar-menu-icon fas fa-database"></i>
+                    Dataset
+                </a>
+            </li>
+            
+            <li class="sidebar-menu-item">
+                <a href="#plottingSection" class="sidebar-menu-link" onclick="showSection('plottingSection')">
+                    <i class="sidebar-menu-icon fas fa-chart-line"></i>
+                    Plotting
+                </a>
+            </li>
+        </ul>
+    </aside>
+
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="navbar-title" id="navbarTitle">
+            Dashboard Overview
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="dashboard-grid">
+
+            <!-- Upload Data Section -->
+            <section id="uploadSection" class="analysis-section active">
+                <div class="card">
+                    <div class="card-header">
+                        Upload Data
+                    </div>
+                  <div class="upload-container">
+                        <i class="fas fa-upload upload-icon"></i>
+                        <p class="upload-text">Drag and drop your CSV file here or click to browse</p>
+                        <input type="file" id="fileUpload" accept=".csv" onchange="handleFileUpload(this.files)">
+                         <div class="filename" id="filenameDisplay">No file selected</div>
+                  </div>
+                </div>
+                <div id="uploadStatus"></div>
+            </section>
+
+            <!-- Regression Analysis Section -->
+            <section id="regressionSection" class="analysis-section">
+                <div class="card">
+                    <div class="card-header">
+                        Regression Analysis
+                    </div>
+                    <div>
+                      <input type="radio" id="predefinedRegression" class="radioClass" name="regressionSource" value="predefined" checked onchange="toggleRegressionInput()">
+                      <label for="predefinedRegression">Models</label>
+                    </div>
+
+                    <!-- In Regression Section -->
+                    <div id="predefinedRegressionInput">
+                        <div class="dropdown-container">
+                            <span class="selected-option" onclick="toggleDropdown(this)">Select Model</span>
+                            <ul class="dropdown-list">
+                                <label><b>Supervised ML:</b></label>
+                                <li class="classLI" onclick="selectRegressionOption(this, 'Linear Regression')">Linear Regression</li>
+                                <li class="classLI" onclick="selectRegressionOption(this, 'Ridge Regression')">Ridge Regression</li>
+                                <li class="classLI" onclick="selectRegressionOption(this, 'Lasso Regression')">Lasso Regression</li>
+                                <li class="classLI" onclick="selectRegressionOption(this, 'Random Forest')">Random Forest</li>
+                                <li class="classLI" onclick="selectRegressionOption(this, 'Gradient Boosting')">Gradient Boosting</li>
+                                <li class="classLI" onclick="selectRegressionOption(this, 'AdaBoost')">AdaBoost</li>
+                                <li class="classLI" onclick="selectRegressionOption(this, 'Decision Tree')">Decision Tree</li>
+                                <li class="classLI" onclick="selectRegressionOption(this, 'KNN')">KNN</li>
+                                <li class="classLI" onclick="selectRegressionOption(this, 'SVM')">SVM</li>
+                                
+                                <label><b>Unsupervised ML:</b></label>
+                                <li class="classLI" onclick="selectRegressionOption(this, 'Gaussian Process')">Gaussian Process</li>
+                            </ul>
+                            <input type="hidden" id="regressionModel" name="regressionModel">
+                        </div>
+                        <div class="code-editor-container">
+                            <textarea id="regressionCodeDisplay" class="code-editor" readonly></textarea>
+                            <p class="file-path-info">Replace <code>'your_file_path.csv'</code> with the actual file path in Colab.</p>
+                        </div>
+                    </div>
+
+                    <div id="customRegressionInput" style="display: none;">
+                      <div class="code-editor-container">
+                          <textarea id="customRegressionCode" class="code-editor" placeholder="Write your custom regression algorithm here"></textarea>
+                      </div>
+                    </div>
+
+                    <button onclick="runRegression()">Run Analysis</button>
+                    <button id="downloadRegressionBtn" onclick="downloadRegressionReport()" style="display: none;">Download Regression Report</button>
+
+                    <div id="regressionResults" class="results-section results-container">
+                        <h3>Results</h3>
+                        <!-- Results will be populated here -->
+                    </div>
+
+                    <div id="regressionExplanation" class="explanation-section explanation-container">
+                        <h3>Explanation of Results</h3>
+                        <!-- Results Explanation -->
+                    </div>
+
+                </div>
+            </section>
+
+            <!-- Classification Analysis Section -->
+            <section id="classificationSection" class="analysis-section">
+                <div class="card">
+                    <div class="card-header">
+                        Classification Analysis
+                    </div>
+
+                    <div>
+                      <input type="radio" id="predefinedClassification" class="radioClass" name="classificationSource" value="predefined" checked onchange="toggleClassificationInput()">
+                      <label for="predefinedClassification">Models</label>
+                    </div>
+
+                    <div id="predefinedClassificationInput">
+                        <div class="dropdown-container">
+                            <span class="selected-option" onclick="toggleDropdown(this)">Select Model</span>
+                            <ul class="dropdown-list">
+                                <label><b>Supervised ML:</b></label>
+                                <li class="classLI" onclick="selectClassificationOption(this, 'Logistic Regression')">Logistic Regression</li>
+                                <li class="classLI" onclick="selectClassificationOption(this, 'Random Forest')">Random Forest</li>
+                                <li class="classLI" onclick="selectClassificationOption(this, 'KNN')">KNN</li>
+                                <li class="classLI" onclick="selectClassificationOption(this, 'SVM')">SVM</li>
+                                <li class="classLI" onclick="selectClassificationOption(this, 'Gradient Boosting')">Gradient Boosting</li>
+                                <li class="classLI" onclick="selectClassificationOption(this, 'AdaBoost')">AdaBoost</li>
+                                <li class="classLI" onclick="selectClassificationOption(this, 'Decision Tree')">Decision Tree</li>
+                                <li class="classLI" onclick="selectClassificationOption(this, 'Gaussian Naive Bayes')">Gaussian Naive Bayes</li>
+                                <li class="classLI" onclick="selectClassificationOption(this, 'Linear Discriminant Analysis')">Linear Discriminant Analysis</li>
+                                <label><b>Unsupervised ML:</b></label>
+                                <li class="classLI" onclick="selectClassificationOption(this, 'MLP Classifier')">MLP Classifier</li>
+                            </ul>
+                            <input type="hidden" id="classificationModel" name="classificationModel">
+                        </div>
+                        <div class="code-editor-container">
+                            <textarea id="classificationCodeDisplay" class="code-editor" readonly></textarea>
+                            <p class="file-path-info">Replace <code>'your_file_path.csv'</code> with the actual file path in Colab.</p>
+                        </div>
+                    </div>
+                    
+
+                    <div id="customClassificationInput" style="display: none;">
+                      <div class="code-editor-container">
+                          <textarea id="customClassificationCode" class="code-editor" placeholder="Write your custom classification algorithm here"></textarea>
+                      </div>
+                    </div>
+
+                    <button onclick="runClassification()">Run Analysis</button>
+                    <button id="downloadClassificationBtn" onclick="downloadClassificationReport()" style="display: none;">Download Analysis Report</button>
+
+
+
+                    <div id="classificationResults" class="results-section results-container">
+                       <h3>Results</h3>
+                       <!-- Results will be populated here -->
+                    </div>
+
+                     <div id="classificationExplanation" class="explanation-section explanation-container">
+                        <h3>Explanation of Results</h3>
+                        <!-- Results Explanation -->
+                    </div>
+
+                    <div id="confusionMatrix" class="explanation-section explanation-container">
+                       <h3>Confusion Matrix</h3>
+                       <!-- Confusion Matrix Image -->
+                    </div>
+
+
+                </div>
+            </section>
+
+            <!-- Clustering Analysis Section -->
+            <section id="clusteringSection" class="analysis-section">
+                <div class="card">
+                    <div class="card-header">
+                        Clustering Analysis
+                    </div>
+                    <button onclick="runClustering()">Run Analysis</button>
+                    <div id="clusteringResults" class="results-container"></div>
+                    <div id="clusterDistribution"></div>
+                    <div id="boxPlots"></div>
+                    <div id="distinctiveFeatures"></div>
+                     <div id="dataInputSection" class="data-input-section">
+                        <h3>Add New Data Point</h3>
+                        <div id="dataInputFields"></div>
+                        <button onclick="addNewData()">Add Data and Generate Plots</button>
+                    </div>
+                    <div id="scatterPlots" class="scatter-plot-container"></div>
+                </div>
+            </section>
+</div>
+        <!-- Dataset Section -->
+        <section id="datasetSection" class="analysis-section">
+            <div class="card">
+                <div class="card-header">Create Dataset</div>
+                
+                <!-- Dropdown for selecting dataset type -->
+                <div class="dropdown-container">
+                    <span class="selected-option" onclick="toggleDropdown(this)">Select Dataset Type</span>
+                    <ul class="dropdown-list">
+                        <li class="classLI" onclick="selectDatasetOption(this, 'Random Data')">Random Data</li>
+                        <li class="classLI" onclick="selectDatasetOption(this, 'Custom Data')">Custom Data</li>
+                    </ul>
+                    <input type="hidden" id="datasetType" name="datasetType">
+                </div>
+                
+                <!-- Random Data Section -->
+                <div id="randomDatasetInput" style="display: none;">
+                    <h3>Generate Random Data</h3>
+                    <label for="numColumns">Number of Columns:</label>
+                    <input type="number" id="numColumns" min="1" value="3" onchange="updateColumnInputs()">
+                    
+                    <div id="columnNamesContainer">
+                        <label>Column Names & Data Types:</label>
+                        <div class="column-row">
+                            <input type="text" class="column-name" placeholder="Column 1">
+                            <select class="column-type">
+                                <option value="integer">Integer</option>
+                                <option value="float">Float</option>
+                                <option value="string">String</option>
+                                <option value="boolean">Boolean</option>
+                                <option value="date">Date</option>
+                            </select>
+                        </div>
+                    </div>
+                    <label for="numRows">Number of Rows:</label>
+                    <input type="number" id="numRows" min="1" value="10">
+                    <button onclick="generateRandomDataset()">Generate Dataset</button>
+                    <button onclick="downloadDataset()">Download as CSV</button>
+                </div>
+                
+                
+
+
+            <!-- Custom Data Section -->
+        <div id="customDatasetInput" style="display: none;">
+            <h3>Enter Custom Data</h3>
+
+            <label for="customNumColumns">Number of Columns:</label>
+            <input type="number" id="customNumColumns" min="1" value="3" onchange="updateCustomColumnInputs()">
+
+            <div id="customColumnNamesContainer">
+                <label>Column Names & Data Types:</label>
+                <div class="column-row">
+                    <input type="text" class="custom-column-name" placeholder="Column 1">
+                    <select class="custom-column-type">
+                        <option value="integer">Integer</option>
+                        <option value="float">Float</option>
+                        <option value="string">String</option>
+                        <option value="boolean">Boolean</option>
+                        <option value="date">Date</option>
+                    </select>
+                </div>
+                <div class="column-row">
+                    <input type="text" class="custom-column-name" placeholder="Column 2">
+                    <select class="custom-column-type">
+                        <option value="integer">Integer</option>
+                        <option value="float">Float</option>
+                        <option value="string">String</option>
+                        <option value="boolean">Boolean</option>
+                        <option value="date">Date</option>
+                    </select>
+                </div>
+                <div class="column-row">
+                    <input type="text" class="custom-column-name" placeholder="Column 3">
+                    <select class="custom-column-type">
+                        <option value="integer">Integer</option>
+                        <option value="float">Float</option>
+                        <option value="string">String</option>
+                        <option value="boolean">Boolean</option>
+                        <option value="date">Date</option>
+                    </select>
+                </div>
+            </div>
+
+            <button onclick="createCustomDataTable()">Create Data Table</button>
+
+            <div id="customDatasetTableContainer" style="display: none;">
+                <h3>Enter Data</h3>
+                <table id="customDatasetTable">
+                    <thead>
+                        <tr id="customTableHeader"></tr>
+                    </thead>
+                    <tbody id="customTableBody"></tbody>
+                </table>
+
+                <button onclick="saveCustomDataset()">Save Data</button>
+                <button onclick="downloadCustomDataset()">Download as CSV</button>
+            </div>
+</section>
+
+<!-- Plotting Section -->
+<section id="plottingSection" class="analysis-section">
+    <div class="card">
+        <div class="card-header">Plotting Analysis</div>
+
+        <div>
+            <input type="radio" id="predefinedPlot" class="radioClass" name="plotSource" value="predefined" checked onchange="togglePlotInput()">
+            <label for="predefinedPlot"><b>Plots</b></label>
+        </div>
+
+        <div id="predefinedPlotInput">
+            <div class="dropdown-container">
+                <span class="selected-option" onclick="toggleDropdown(this)">Select Plot</span>
+                <ul class="dropdown-list">
+                    <label><b>Select 2D Plot:</b></label>
+                    <li class="plotLI" onclick="selectPlotOption(this, 'Line Plot')">Line Plot</li>
+                    <li class="plotLI" onclick="selectPlotOption(this, 'Scatter Plot')">Scatter Plot</li>
+                    <li class="plotLI" onclick="selectPlotOption(this, 'Bar Chart')">Bar Chart</li>
+                    <li class="plotLI" onclick="selectPlotOption(this, 'Histogram')">Histogram</li>
+                    <li class="plotLI" onclick="selectPlotOption(this, 'Box Plot')">Box Plot</li>
+                    <li class="plotLI" onclick="selectPlotOption(this, 'Pie Chart')">Pie Chart</li>
+                    <li class="plotLI" onclick="selectPlotOption(this, 'Heatmap')">Heatmap</li>
+                    <li class="plotLI" onclick="selectPlotOption(this, 'Contour Plot')">Contour Plot</li>
+                    <label><b>Select 3D Plot:</b></label>
+                    <li class="plotLI" onclick="selectPlotOption(this, '3D Scatter Plot')">3D Scatter Plot</li>
+                    <li class="plotLI" onclick="selectPlotOption(this, '3D Surface Plot')">3D Surface Plot</li>
+                    <li class="plotLI" onclick="selectPlotOption(this, '3D Wireframe Plot')">3D Wireframe Plot</li>
+                    <li class="plotLI" onclick="selectPlotOption(this, '3D Bar Chart')">3D Bar Chart</li>
+                    <li class="plotLI" onclick="selectPlotOption(this, '3D Contour Plot')">3D Contour Plot</li>
+                </ul>
+                <input type="hidden" id="plotModel" name="plotModel">
+            </div>
+
+        <button onclick="runPlotting()">Run Plot</button>
+        <button id="downloadPlotBtn" onclick="downloadPlotReport()">Download Plot Report</button>
+
+        <div id="plotResults" class="results-section results-container">
+            <h3>Plot Results</h3>
+            <!-- Plots will be displayed here -->
+        </div>
+    </div>
+</section>
+    </main>
+</div>
+<script>
+    // JavaScript code remains unchanged
+    const API_URL = 'http://127.0.0.1:5000/';
+
+    let uploadedFile = null; // Store the uploaded file
+    let distinctiveFeatures = [];
+    let numericalColumns = [];
+
+    // Algorithm Code Definitions
+    const algorithmCodes = {
+    "Linear Regression": `
+import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression
+from sklearn.preprocessing import LabelEncoder, StandardScaler
+from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score, accuracy_score, precision_score, recall_score, f1_score
+import matplotlib.pyplot as plt # Added matplotlib
+
+def perform_linear_regression(csv_file_path):
+    """
+    Performs linear regression automatically on a CSV file, selecting a numerical
+    target and treating other numerical columns as features. Then it calculates MSE,
+    MAE, R2, and converts to binary classification to get accuracy, precision,
+    recall, and F1-score.
+    """
+    try:
+        # Load data
+        df = pd.read_csv(csv_file_path)
+
+        # Identify numerical and categorical columns
+        numerical_cols = df.select_dtypes(include=np.number).columns.tolist()
+        categorical_cols = df.select_dtypes(include='object').columns.tolist() # Not used directly, but good to know
+
+        if not numerical_cols:
+            raise ValueError("No numerical columns found in the CSV file.")
+
+        # Select the LAST numerical column as the target variable
+        target_column = numerical_cols[-1]
+        features = numerical_cols[:-1] # All other numerical columns become features
+
+        if not features:
+            raise ValueError("No feature columns available (need at least two numerical columns).") #More descriptive error
+
+        # Handle missing values by imputing with the mean (numerical columns only)
+        for col in features:
+            df[col] = df[col].fillna(df[col].mean()) #Impute missing values in features
+        df[target_column] = df[target_column].fillna(df[target_column].mean())  # Impute missing values in the target column
+
+        # Separate features (X) and target (y)
+        X = df[features]
+        y = df[target_column]
+
+        # Split into training and testing sets
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+        # Scale the data - VERY IMPORTANT for linear models!
+        scaler = StandardScaler()
+        X_train_scaled = scaler.fit_transform(X_train)  # Fit on training data
+        X_test_scaled = scaler.transform(X_test)        # Apply transformation to test data
+
+
+        # Train the Linear Regression model
+        model = LinearRegression()
+        model.fit(X_train_scaled, y_train)
+
+        # Make predictions
+        y_pred = model.predict(X_test_scaled)
+
+
+        # Calculate regression metrics
+        mse = mean_squared_error(y_test, y_pred)
+        mae = mean_absolute_error(y_test, y_pred)
+        r2 = r2_score(y_test, y_pred)
+
+        # Convert predictions and actual values to binary for classification metrics
+        threshold = np.median(y_test)  # Use median as a simple threshold
+        y_pred_binary = (y_pred > threshold).astype(int)
+        y_test_binary = (y_test > threshold).astype(int)
+
+
+        #Visualize
+        plt.figure(figsize=(8, 6))
+        plt.scatter(y_test, y_pred)
+        plt.xlabel("Actual Values")
+        plt.ylabel("Predicted Values")
+        plt.title("Actual vs. Predicted Values")
+        plt.plot([y_test.min(), y_test.max()], [y_test.min(), y_test.max()], 'k--', lw=2)  # Diagonal line
+        plt.show()
+
+        return {
+            "Mean Squared Error": mse,
+            "Mean Absolute Error": mae,
+            "R-squared": r2
+        }
+
+    except FileNotFoundError:
+        print("Error: File not found.")
+        return None
+    except ValueError as e:
+        print(f"Error: {e}")
+        return None
+    except Exception as e:
+        print(f"An unexpected error occurred: {e}")
+        return None
+
+
+# Example Usage:
+if __name__ == "__main__":
+    csv_file_path = "/content/your_data.csv"  # **REPLACE WITH YOUR CSV FILE PATH**
+    results = perform_linear_regression(csv_file_path)
+
+    if results:
+        for metric, value in results.items():
+            print(f"{metric}: {value:.4f}") #Format output
+`,
+    "Ridge Regression": `
+import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import Ridge
+from sklearn.preprocessing import LabelEncoder, StandardScaler
+from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score, accuracy_score, precision_score, recall_score, f1_score
+import matplotlib.pyplot as plt
+
+def perform_ridge_regression(csv_file_path, alpha=1.0):
+    """
+    Performs Ridge Regression automatically on a CSV file, selecting a numerical
+    target and treating other numerical columns as features. Then it calculates MSE,
+    MAE, R2, and converts to binary classification to get accuracy, precision,
+    recall, and F1-score.
+
+    Args:
+        csv_file_path (str): Path to the CSV file.
+        alpha (float): Regularization strength; must be a positive float.
+    """
+    try:
+        # Load data
+        df = pd.read_csv(csv_file_path)
+
+        # Identify numerical columns
+        numerical_cols = df.select_dtypes(include=np.number).columns.tolist()
+
+        if not numerical_cols:
+            raise ValueError("No numerical columns found in the CSV file.")
+
+        # Select target and features
+        target_column = numerical_cols[-1]
+        features = numerical_cols[:-1]
+
+        if not features:
+            raise ValueError("No feature columns available (need at least two numerical columns).")
+
+        # Handle missing values
+        for col in features:
+            df[col] = df[col].fillna(df[col].mean())
+        df[target_column] = df[target_column].fillna(df[target_column].mean())
+
+        # Separate features (X) and target (y)
+        X = df[features]
+        y = df[target_column]
+
+        # Split into training and testing sets
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+        # Scale the data - VERY IMPORTANT
+        scaler = StandardScaler()
+        X_train_scaled = scaler.fit_transform(X_train)
+        X_test_scaled = scaler.transform(X_test)
+
+        # Train the Ridge Regression model
+        model = Ridge(alpha=alpha)  # Use Ridge instead of LinearRegression
+        model.fit(X_train_scaled, y_train)
+
+        # Make predictions
+        y_pred = model.predict(X_test_scaled)
+
+        # Calculate regression metrics
+        mse = mean_squared_error(y_test, y_pred)
+        mae = mean_absolute_error(y_test, y_pred)
+        r2 = r2_score(y_test, y_pred)
+
+        # Convert predictions and actual values to binary for classification metrics
+        threshold = np.median(y_test)
+        y_pred_binary = (y_pred > threshold).astype(int)
+        y_test_binary = (y_test > threshold).astype(int)
+
+        # Calculate classification metrics
+        accuracy = accuracy_score(y_test_binary, y_pred_binary)
+        precision = precision_score(y_test_binary, y_pred_binary, average='weighted', zero_division=0)
+        recall = recall_score(y_test_binary, y_pred_binary, average='weighted', zero_division=0)
+        f1 = f1_score(y_test_binary, y_pred_binary, average='weighted')
+
+        #Visualize
+        plt.figure(figsize=(8, 6))
+        plt.scatter(y_test, y_pred)
+        plt.xlabel("Actual Values")
+        plt.ylabel("Predicted Values")
+        plt.title("Actual vs. Predicted Values")
+        plt.plot([y_test.min(), y_test.max()], [y_test.min(), y_test.max()], 'k--', lw=2)  # Diagonal line
+        plt.show()
+
+        return {
+            "Mean Squared Error": mse,
+            "Mean Absolute Error": mae,
+            "R-squared": r2,
+            "Accuracy": accuracy,
+            "Precision": precision,
+            "Recall": recall,
+            "F1 Score": f1
+        }
+
+    except FileNotFoundError:
+        print("Error: File not found.")
+        return None
+    except ValueError as e:
+        print(f"Error: {e}")
+        return None
+    except Exception as e:
+        print(f"An unexpected error occurred: {e}")
+        return None
+
+
+# Example Usage:
+if __name__ == "__main__":
+    csv_file_path = "/content/your_data.csv"  # **REPLACE WITH YOUR CSV FILE PATH**
+    results = perform_ridge_regression(csv_file_path, alpha=0.5) # You can change the alpha value
+
+    if results:
+        for metric, value in results.items():
+            print(f"{metric}: {value:.4f}")
+`,
+"Decision Tree":`
+import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.preprocessing import LabelEncoder, StandardScaler
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, confusion_matrix
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+def perform_decision_tree(csv_file_path):
+    """
+    Performs Decision Tree classification automatically on a CSV file, selecting a binary target
+    and treating other numerical columns as features. Then it calculates accuracy,
+    precision, recall, and F1-score.
+    """
+    try:
+        # Load data
+        df = pd.read_csv(csv_file_path)
+
+        # Identify numerical and categorical columns
+        numerical_cols = df.select_dtypes(include=np.number).columns.tolist()
+        categorical_cols = df.select_dtypes(include='object').columns.tolist()
+
+        if not numerical_cols:
+            raise ValueError("No numerical columns found in the CSV file.")
+
+        # Select the LAST numerical column as the target variable
+        target_column = numerical_cols[-1]
+        features = numerical_cols[:-1]
+
+        if not features:
+            raise ValueError("No feature columns available (need at least two numerical columns).")
+
+        # Handle missing values by imputing with the mean
+        for col in features:
+            df[col] = df[col].fillna(df[col].mean())
+        df[target_column] = df[target_column].fillna(df[target_column].mean())
+
+        # Convert target variable to binary if necessary
+        df[target_column] = (df[target_column] > df[target_column].median()).astype(int)
+
+        # Separate features (X) and target (y)
+        X = df[features]
+        y = df[target_column]
+
+        # Split into training and testing sets
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+        # Train the Decision Tree model
+        model = DecisionTreeClassifier()
+        model.fit(X_train, y_train)
+
+        # Make predictions
+        y_pred = model.predict(X_test)
+
+        # Calculate classification metrics
+        accuracy = accuracy_score(y_test, y_pred)
+        precision = precision_score(y_test, y_pred)
+        recall = recall_score(y_test, y_pred)
+        f1 = f1_score(y_test, y_pred)
+
+        # Confusion Matrix Visualization
+        cm = confusion_matrix(y_test, y_pred)
+        plt.figure(figsize=(6, 5))
+        sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', xticklabels=["Class 0", "Class 1"], yticklabels=["Class 0", "Class 1"])
+        plt.xlabel("Predicted")
+        plt.ylabel("Actual")
+        plt.title("Confusion Matrix")
+        plt.show()
+
+        return {
+            "Accuracy": accuracy,
+            "Precision": precision,
+            "Recall": recall,
+            "F1-score": f1
+        }
+
+    except FileNotFoundError:
+        print("Error: File not found.")
+        return None
+    except ValueError as e:
+        print(f"Error: {e}")
+        return None
+    except Exception as e:
+        print(f"An unexpected error occurred: {e}")
+        return None
+
+# Example Usage:
+if __name__ == "__main__":
+    csv_file_path = "/content/your_data.csv"  # **REPLACE WITH YOUR CSV FILE PATH**
+    results = perform_decision_tree(csv_file_path)
+
+    if results:
+        for metric, value in results.items():
+            print(f"{metric}: {value:.4f}")
+
+`,
+
+"Lasso Regression":`
+import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import Lasso
+from sklearn.preprocessing import LabelEncoder, StandardScaler
+from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score, accuracy_score, precision_score, recall_score, f1_score
+import matplotlib.pyplot as plt
+
+def perform_lasso_regression(csv_file_path, alpha=1.0):
+    """
+    Performs Lasso Regression automatically on a CSV file, selecting a numerical
+    target and treating other numerical columns as features. Then it calculates MSE,
+    MAE, R2, and converts to binary classification to get accuracy, precision,
+    recall, and F1-score.
+
+    Args:
+        csv_file_path (str): Path to the CSV file.
+        alpha (float): Regularization strength; must be a positive float.  Higher alpha values
+                       lead to more features being set to zero (more sparsity).
+    """
+    try:
+        # Load data
+        df = pd.read_csv(csv_file_path)
+
+        # Identify numerical columns
+        numerical_cols = df.select_dtypes(include=np.number).columns.tolist()
+
+        if not numerical_cols:
+            raise ValueError("No numerical columns found in the CSV file.")
+
+        # Select target and features
+        target_column = numerical_cols[-1]
+        features = numerical_cols[:-1]
+
+        if not features:
+            raise ValueError("No feature columns available (need at least two numerical columns).")
+
+        # Handle missing values
+        for col in features:
+            df[col] = df[col].fillna(df[col].mean())
+        df[target_column] = df[target_column].fillna(df[target_column].mean())
+
+        # Separate features (X) and target (y)
+        X = df[features]
+        y = df[target_column]
+
+        # Split into training and testing sets
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+        # Scale the data - VERY IMPORTANT
+        scaler = StandardScaler()
+        X_train_scaled = scaler.fit_transform(X_train)
+        X_test_scaled = scaler.transform(X_test)
+
+        # Train the Lasso Regression model
+        model = Lasso(alpha=alpha)  # Use Lasso instead of LinearRegression
+        model.fit(X_train_scaled, y_train)
+
+        # Make predictions
+        y_pred = model.predict(X_test_scaled)
+
+        # Calculate regression metrics
+        mse = mean_squared_error(y_test, y_pred)
+        mae = mean_absolute_error(y_test, y_pred)
+        r2 = r2_score(y_test, y_pred)
+
+        # Convert predictions and actual values to binary for classification metrics
+        threshold = np.median(y_test)
+        y_pred_binary = (y_pred > threshold).astype(int)
+        y_test_binary = (y_test > threshold).astype(int)
+
+        #Visualize
+        plt.figure(figsize=(8, 6))
+        plt.scatter(y_test, y_pred)
+        plt.xlabel("Actual Values")
+        plt.ylabel("Predicted Values")
+        plt.title("Actual vs. Predicted Values")
+        plt.plot([y_test.min(), y_test.max()], [y_test.min(), y_test.max()], 'k--', lw=2)  # Diagonal line
+        plt.show()
+
+        return {
+            "Mean Squared Error": mse,
+            "Mean Absolute Error": mae,
+            "R-squared": r2
+        }
+
+    except FileNotFoundError:
+        print("Error: File not found.")
+        return None
+    except ValueError as e:
+        print(f"Error: {e}")
+        return None
+    except Exception as e:
+        print(f"An unexpected error occurred: {e}")
+        return None
+
+
+# Example Usage:
+if __name__ == "__main__":
+    csv_file_path = "/content/your-file-path.csv"  # **REPLACE WITH YOUR CSV FILE PATH**
+    results = perform_lasso_regression(csv_file_path, alpha=0.1) # Adjust alpha value
+
+    if results:
+        for metric, value in results.items():
+            print(f"{metric}: {value:.4f}")
+`
+,
+"Random Forest" : `
+import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.preprocessing import LabelEncoder, StandardScaler
+from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
+import matplotlib.pyplot as plt
+
+def perform_random_forest_regression(csv_file_path, n_estimators=100, random_state=42):
+    """
+    Performs Random Forest Regression automatically on a CSV file, selecting a numerical
+    target and treating other numerical columns as features.  Calculates MSE, MAE, and R2.
+
+    Args:
+        csv_file_path (str): Path to the CSV file.
+        n_estimators (int): The number of trees in the forest.
+        random_state (int): Controls the randomness of the estimator.
+    """
+    try:
+        # Load data
+        df = pd.read_csv(csv_file_path)
+
+        # Identify numerical columns
+        numerical_cols = df.select_dtypes(include=np.number).columns.tolist()
+
+        if not numerical_cols:
+            raise ValueError("No numerical columns found in the CSV file.")
+
+        # Select target and features
+        target_column = numerical_cols[-1]
+        features = numerical_cols[:-1]
+
+        if not features:
+            raise ValueError("No feature columns available (need at least two numerical columns).")
+
+        # Handle missing values
+        for col in features:
+            df[col] = df[col].fillna(df[col].mean())
+        df[target_column] = df[target_column].fillna(df[target_column].mean())
+
+        # Separate features (X) and target (y)
+        X = df[features]
+        y = df[target_column]
+
+        # Split into training and testing sets
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=random_state)
+
+        # Scale the data
+        scaler = StandardScaler()
+        X_train_scaled = scaler.fit_transform(X_train)
+        X_test_scaled = scaler.transform(X_test)
+
+        # Train the Random Forest Regression model
+        model = RandomForestRegressor(n_estimators=n_estimators, random_state=random_state)
+        model.fit(X_train_scaled, y_train)
+
+        # Make predictions
+        y_pred = model.predict(X_test_scaled)
+
+        # Calculate regression metrics
+        mse = mean_squared_error(y_test, y_pred)
+        mae = mean_absolute_error(y_test, y_pred)
+        r2 = r2_score(y_test, y_pred)
+
+        #Visualize
+        plt.figure(figsize=(8, 6))
+        plt.scatter(y_test, y_pred)
+        plt.xlabel("Actual Values")
+        plt.ylabel("Predicted Values")
+        plt.title("Actual vs. Predicted Values")
+        plt.plot([y_test.min(), y_test.max()], [y_test.min(), y_test.max()], 'k--', lw=2)  # Diagonal line
+        plt.show()
+
+        return {
+            "Mean Squared Error": mse,
+            "Mean Absolute Error": mae,
+            "R-squared": r2
+        }
+
+    except FileNotFoundError:
+        print("Error: File not found.")
+        return None
+    except ValueError as e:
+        print(f"Error: {e}")
+        return None
+    except Exception as e:
+        print(f"An unexpected error occurred: {e}")
+        return None
+
+
+# Example Usage:
+if __name__ == "__main__":
+    csv_file_path = "/content/your-file-path.csv"  # **REPLACE WITH YOUR CSV FILE PATH**
+    results = perform_random_forest_regression(csv_file_path, n_estimators=200, random_state=42)
+
+    if results:
+        for metric, value in results.items():
+            print(f"{metric}: {value:.4f}")
+`,
+"Gradient Boosting":`import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import GradientBoostingRegressor
+from sklearn.preprocessing import LabelEncoder, StandardScaler
+from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
+import matplotlib.pyplot as plt
+
+def perform_gradient_boosting_regression(csv_file_path, n_estimators=100, learning_rate=0.1, max_depth=3, random_state=42):
+    """
+    Performs Gradient Boosting Regression automatically on a CSV file, selecting a numerical
+    target and treating other numerical columns as features.  Calculates MSE, MAE, and R2.
+
+    Args:
+        csv_file_path (str): Path to the CSV file.
+        n_estimators (int): The number of boosting stages to perform.
+        learning_rate (float): Learning rate shrinks the contribution of each tree by learning_rate.
+        max_depth (int): Maximum depth of the individual regression estimators.
+        random_state (int): Controls the randomness of the estimator.
+    """
+    try:
+        # Load data
+        df = pd.read_csv(csv_file_path)
+
+        # Identify numerical columns
+        numerical_cols = df.select_dtypes(include=np.number).columns.tolist()
+
+        if not numerical_cols:
+            raise ValueError("No numerical columns found in the CSV file.")
+
+        # Select target and features
+        target_column = numerical_cols[-1]
+        features = numerical_cols[:-1]
+
+        if not features:
+            raise ValueError("No feature columns available (need at least two numerical columns).")
+
+        # Handle missing values
+        for col in features:
+            df[col] = df[col].fillna(df[col].mean())
+        df[target_column] = df[target_column].fillna(df[target_column].mean())
+
+        # Separate features (X) and target (y)
+        X = df[features]
+        y = df[target_column]
+
+        # Split into training and testing sets
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=random_state)
+
+        # Scale the data
+        scaler = StandardScaler()
+        X_train_scaled = scaler.fit_transform(X_train)
+        X_test_scaled = scaler.transform(X_test)
+
+        # Train the Gradient Boosting Regression model
+        model = GradientBoostingRegressor(n_estimators=n_estimators, learning_rate=learning_rate, max_depth=max_depth, random_state=random_state)
+        model.fit(X_train_scaled, y_train)
+
+        # Make predictions
+        y_pred = model.predict(X_test_scaled)
+
+        # Calculate regression metrics
+        mse = mean_squared_error(y_test, y_pred)
+        mae = mean_absolute_error(y_test, y_pred)
+        r2 = r2_score(y_test, y_pred)
+
+        #Visualize
+        plt.figure(figsize=(8, 6))
+        plt.scatter(y_test, y_pred)
+        plt.xlabel("Actual Values")
+        plt.ylabel("Predicted Values")
+        plt.title("Actual vs. Predicted Values")
+        plt.plot([y_test.min(), y_test.max()], [y_test.min(), y_test.max()], 'k--', lw=2)  # Diagonal line
+        plt.show()
+
+        return {
+            "Mean Squared Error": mse,
+            "Mean Absolute Error": mae,
+            "R-squared": r2
+        }
+
+    except FileNotFoundError:
+        print("Error: File not found.")
+        return None
+    except ValueError as e:
+        print(f"Error: {e}")
+        return None
+    except Exception as e:
+        print(f"An unexpected error occurred: {e}")
+        return None
+
+
+# Example Usage:
+if __name__ == "__main__":
+    csv_file_path = "/content/your_data.csv"  # **REPLACE WITH YOUR CSV FILE PATH**
+    results = perform_gradient_boosting_regression(csv_file_path, n_estimators=200, learning_rate=0.05, max_depth=4, random_state=42)
+
+    if results:
+        for metric, value in results.items():
+            print(f"{metric}: {value:.4f}")
+            `, 
+"AdaBoost":
+`import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import AdaBoostRegressor
+from sklearn.preprocessing import LabelEncoder, StandardScaler
+from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
+import matplotlib.pyplot as plt
+
+def perform_adaboost_regression(csv_file_path, n_estimators=50, learning_rate=1.0, random_state=None):
+    """
+    Performs AdaBoost Regression automatically on a CSV file, selecting a numerical
+    target and treating other numerical columns as features.  Calculates MSE, MAE, and R2.
+
+    Args:
+        csv_file_path (str): Path to the CSV file.
+        n_estimators (int): The maximum number of estimators at which boosting is terminated.
+        learning_rate (float): Weight applied to each estimator. A higher learning rate increases the contribution
+                                of each estimator. There is a trade-off between learning_rate and n_estimators.
+        random_state (int, optional): Controls the randomness of the estimator.
+    """
+    try:
+        # Load data
+        df = pd.read_csv(csv_file_path)
+
+        # Identify numerical columns
+        numerical_cols = df.select_dtypes(include=np.number).columns.tolist()
+
+        if not numerical_cols:
+            raise ValueError("No numerical columns found in the CSV file.")
+
+        # Select target and features
+        target_column = numerical_cols[-1]
+        features = numerical_cols[:-1]
+
+        if not features:
+            raise ValueError("No feature columns available (need at least two numerical columns).")
+
+        # Handle missing values
+        for col in features:
+            df[col] = df[col].fillna(df[col].mean())
+        df[target_column] = df[target_column].fillna(df[target_column].mean())
+
+        # Separate features (X) and target (y)
+        X = df[features]
+        y = df[target_column]
+
+        # Split into training and testing sets
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=random_state)
+
+        # Scale the data
+        scaler = StandardScaler()
+        X_train_scaled = scaler.fit_transform(X_train)
+        X_test_scaled = scaler.transform(X_test)
+
+        # Train the AdaBoost Regression model
+        model = AdaBoostRegressor(n_estimators=n_estimators, learning_rate=learning_rate, random_state=random_state)
+        model.fit(X_train_scaled, y_train)
+
+        # Make predictions
+        y_pred = model.predict(X_test_scaled)
+
+        # Calculate regression metrics
+        mse = mean_squared_error(y_test, y_pred)
+        mae = mean_absolute_error(y_test, y_pred)
+        r2 = r2_score(y_test, y_pred)
+
+        #Visualize
+        plt.figure(figsize=(8, 6))
+        plt.scatter(y_test, y_pred)
+        plt.xlabel("Actual Values")
+        plt.ylabel("Predicted Values")
+        plt.title("Actual vs. Predicted Values")
+        plt.plot([y_test.min(), y_test.max()], [y_test.min(), y_test.max()], 'k--', lw=2)  # Diagonal line
+        plt.show()
+
+        return {
+            "Mean Squared Error": mse,
+            "Mean Absolute Error": mae,
+            "R-squared": r2
+        }
+
+    except FileNotFoundError:
+        print("Error: File not found.")
+        return None
+    except ValueError as e:
+        print(f"Error: {e}")
+        return None
+    except Exception as e:
+        print(f"An unexpected error occurred: {e}")
+        return None
+
+
+# Example Usage:
+if __name__ == "__main__":
+    csv_file_path = "/content/your_data.csv"  # **REPLACE WITH YOUR CSV FILE PATH**
+    results = perform_adaboost_regression(csv_file_path, n_estimators=100, learning_rate=0.5, random_state=42)
+
+    if results:
+        for metric, value in results.items():
+            print(f"{metric}: {value:.4f}")
+            `,
+"KNN":
+`import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.neighbors import KNeighborsRegressor
+from sklearn.preprocessing import StandardScaler
+from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
+import matplotlib.pyplot as plt
+
+def perform_knn_regression(csv_file_path, n_neighbors=5, weights='uniform', algorithm='auto', random_state=42):
+    """
+    Performs KNN Regression automatically on a CSV file, selecting a numerical
+    target and treating other numerical columns as features. Calculates MSE, MAE, and R2.
+
+    Args:
+        csv_file_path (str): Path to the CSV file.
+        n_neighbors (int): Number of neighbors to use.
+        weights (str): Weight function used in prediction.  'uniform' or 'distance'.
+        algorithm (str): Algorithm used to compute the nearest neighbors. 'auto', 'ball_tree', 'kd_tree', 'brute'.
+        random_state (int): Controls the randomness of the train_test_split.
+    """
+    try:
+        # Load data
+        df = pd.read_csv(csv_file_path)
+
+        # Identify numerical columns
+        numerical_cols = df.select_dtypes(include=np.number).columns.tolist()
+
+        if not numerical_cols:
+            raise ValueError("No numerical columns found in the CSV file.")
+
+        # Select target and features
+        target_column = numerical_cols[-1]
+        features = numerical_cols[:-1]
+
+        if not features:
+            raise ValueError("No feature columns available (need at least two numerical columns).")
+
+        # Handle missing values
+        for col in features:
+            df[col] = df[col].fillna(df[col].mean())
+        df[target_column] = df[target_column].fillna(df[target_column].mean())
+
+        # Separate features (X) and target (y)
+        X = df[features]
+        y = df[target_column]
+
+        # Split into training and testing sets
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=random_state)
+
+        # Scale the data
+        scaler = StandardScaler()
+        X_train_scaled = scaler.fit_transform(X_train)
+        X_test_scaled = scaler.transform(X_test)
+
+        # Train the KNN Regression model
+        model = KNeighborsRegressor(n_neighbors=n_neighbors, weights=weights, algorithm=algorithm)
+        model.fit(X_train_scaled, y_train)
+
+        # Make predictions
+        y_pred = model.predict(X_test_scaled)
+
+        # Calculate regression metrics
+        mse = mean_squared_error(y_test, y_pred)
+        mae = mean_absolute_error(y_test, y_pred)
+        r2 = r2_score(y_test, y_pred)
+
+        # Visualize
+        plt.figure(figsize=(8, 6))
+        plt.scatter(y_test, y_pred)
+        plt.xlabel("Actual Values")
+        plt.ylabel("Predicted Values")
+        plt.title("Actual vs. Predicted Values")
+        plt.plot([y_test.min(), y_test.max()], [y_test.min(), y_test.max()], 'k--', lw=2)  # Diagonal line
+        plt.show()
+
+
+        return {
+            "Mean Squared Error": mse,
+            "Mean Absolute Error": mae,
+            "R-squared": r2
+        }
+
+    except FileNotFoundError:
+        print("Error: File not found.")
+        return None
+    except ValueError as e:
+        print(f"Error: {e}")
+        return None
+    except Exception as e:
+        print(f"An unexpected error occurred: {e}")
+        return None
+
+
+# Example Usage:
+if __name__ == "__main__":
+    csv_file_path = "/content/your_data.csv"  # **REPLACE WITH YOUR CSV FILE PATH**
+    results = perform_knn_regression(csv_file_path, n_neighbors=7, weights='distance', algorithm='auto', random_state=42)
+
+    if results:
+        for metric, value in results.items():
+            print(f"{metric}: {value:.4f}")`,
+"SVM":
+`import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.svm import SVR
+from sklearn.preprocessing import StandardScaler
+from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
+import matplotlib.pyplot as plt
+
+def perform_svm_regression(csv_file_path, kernel='rbf', C=1.0, epsilon=0.1, random_state=42):
+    """
+    Performs Support Vector Machine (SVM) Regression automatically on a CSV file,
+    selecting a numerical target and treating other numerical columns as features.
+    Calculates MSE, MAE, and R2.
+
+    Args:
+        csv_file_path (str): Path to the CSV file.
+        kernel (str): Kernel type to be used in the algorithm. 'linear', 'poly', 'rbf', 'sigmoid', 'precomputed'.
+        C (float): Regularization parameter. The strength of the regularization is inversely proportional to C.
+        epsilon (float): Specifies the epsilon-tube within which no penalty is associated in the training loss function.
+        random_state (int): Controls the randomness of the train_test_split and potentially the solver (if applicable).
+    """
+    try:
+        # Load data
+        df = pd.read_csv(csv_file_path)
+
+        # Identify numerical columns
+        numerical_cols = df.select_dtypes(include=np.number).columns.tolist()
+
+        if not numerical_cols:
+            raise ValueError("No numerical columns found in the CSV file.")
+
+        # Select target and features
+        target_column = numerical_cols[-1]
+        features = numerical_cols[:-1]
+
+        if not features:
+            raise ValueError("No feature columns available (need at least two numerical columns).")
+
+        # Handle missing values
+        for col in features:
+            df[col] = df[col].fillna(df[col].mean())
+        df[target_column] = df[target_column].fillna(df[target_column].mean())
+
+        # Separate features (X) and target (y)
+        X = df[features]
+        y = df[target_column]
+
+        # Split into training and testing sets
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=random_state)
+
+        # Scale the data
+        scaler = StandardScaler()
+        X_train_scaled = scaler.fit_transform(X_train)
+        X_test_scaled = scaler.transform(X_test)
+
+        # Train the SVM Regression model
+        model = SVR(kernel=kernel, C=C, epsilon=epsilon)
+        model.fit(X_train_scaled, y_train)
+
+        # Make predictions
+        y_pred = model.predict(X_test_scaled)
+
+        # Calculate regression metrics
+        mse = mean_squared_error(y_test, y_pred)
+        mae = mean_absolute_error(y_test, y_pred)
+        r2 = r2_score(y_test, y_pred)
+
+        # Visualize
+        plt.figure(figsize=(8, 6))
+        plt.scatter(y_test, y_pred)
+        plt.xlabel("Actual Values")
+        plt.ylabel("Predicted Values")
+        plt.title("Actual vs. Predicted Values")
+        plt.plot([y_test.min(), y_test.max()], [y_test.min(), y_test.max()], 'k--', lw=2)  # Diagonal line
+        plt.show()
+
+
+        return {
+            "Mean Squared Error": mse,
+            "Mean Absolute Error": mae,
+            "R-squared": r2
+        }
+
+    except FileNotFoundError:
+        print("Error: File not found.")
+        return None
+    except ValueError as e:
+        print(f"Error: {e}")
+        return None
+    except Exception as e:
+        print(f"An unexpected error occurred: {e}")
+        return None
+
+
+# Example Usage:
+if __name__ == "__main__":
+    csv_file_path = "/content/your_data.csv"  # **REPLACE WITH YOUR CSV FILE PATH**
+    results = perform_svm_regression(csv_file_path, kernel='rbf', C=1.0, epsilon=0.1, random_state=42)
+
+    if results:
+        for metric, value in results.items():
+            print(f"{metric}: {value:.4f}")`,
+"Gaussian Process":
+`import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.gaussian_process import GaussianProcessRegressor
+from sklearn.gaussian_process.kernels import RBF, ConstantKernel as C
+from sklearn.preprocessing import StandardScaler
+from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
+import matplotlib.pyplot as plt
+
+def perform_gaussian_process_regression(csv_file_path, kernel=None, alpha=1e-10, n_restarts_optimizer=0, random_state=42):
+    """
+    Performs Gaussian Process Regression automatically on a CSV file, selecting a numerical
+    target and treating other numerical columns as features. Calculates MSE, MAE, and R2.
+
+    Args:
+        csv_file_path (str): Path to the CSV file.
+        kernel (sklearn.gaussian_process.kernels): Kernel specifying the covariance function of the GP.
+                                            If None, a default RBF kernel is used.
+        alpha (float): Value added to the diagonal of the kernel matrix during fitting.
+                       Larger values result in more robust predictions but can increase bias.  This is effectively
+                       regularization.
+        n_restarts_optimizer (int): The number of restarts of the optimizer for finding the kernel’s parameters.
+                                     Can help avoid local optima.
+        random_state (int): Controls the randomness of the train_test_split.
+    """
+    try:
+        # Load data
+        df = pd.read_csv(csv_file_path)
+
+        # Identify numerical columns
+        numerical_cols = df.select_dtypes(include=np.number).columns.tolist()
+
+        if not numerical_cols:
+            raise ValueError("No numerical columns found in the CSV file.")
+
+        # Select target and features
+        target_column = numerical_cols[-1]
+        features = numerical_cols[:-1]
+
+        if not features:
+            raise ValueError("No feature columns available (need at least two numerical columns).")
+
+        # Handle missing values
+        for col in features:
+            df[col] = df[col].fillna(df[col].mean())
+        df[target_column] = df[target_column].fillna(df[target_column].mean())
+
+        # Separate features (X) and target (y)
+        X = df[features]
+        y = df[target_column]
+
+        # Split into training and testing sets
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=random_state)
+
+        # Scale the data
+        scaler = StandardScaler()
+        X_train_scaled = scaler.fit_transform(X_train)
+        X_test_scaled = scaler.transform(X_test)
+
+        # Define the default kernel if none is provided
+        if kernel is None:
+            kernel = C(1.0, constant_value_bounds="fixed") * RBF(1.0, length_scale_bounds="fixed")  # Default RBF kernel
+
+        # Train the Gaussian Process Regression model
+        model = GaussianProcessRegressor(kernel=kernel, alpha=alpha, n_restarts_optimizer=n_restarts_optimizer, random_state=random_state)
+        model.fit(X_train_scaled, y_train)
+
+        # Make predictions
+        y_pred = model.predict(X_test_scaled)
+
+        # Calculate regression metrics
+        mse = mean_squared_error(y_test, y_pred)
+        mae = mean_absolute_error(y_test, y_pred)
+        r2 = r2_score(y_test, y_pred)
+
+        # Visualize
+        plt.figure(figsize=(8, 6))
+        plt.scatter(y_test, y_pred)
+        plt.xlabel("Actual Values")
+        plt.ylabel("Predicted Values")
+        plt.title("Actual vs. Predicted Values")
+        plt.plot([y_test.min(), y_test.max()], [y_test.min(), y_test.max()], 'k--', lw=2)  # Diagonal line
+        plt.show()
+
+
+        return {
+            "Mean Squared Error": mse,
+            "Mean Absolute Error": mae,
+            "R-squared": r2
+        }
+
+    except FileNotFoundError:
+        print("Error: File not found.")
+        return None
+    except ValueError as e:
+        print(f"Error: {e}")
+        return None
+    except Exception as e:
+        print(f"An unexpected error occurred: {e}")
+        return None
+
+
+# Example Usage:
+if __name__ == "__main__":
+    csv_file_path = "/content/your-file.csv"  # **REPLACE WITH YOUR CSV FILE PATH**
+
+    # Example 1: Using the default RBF kernel with no optimizer restarts
+    results = perform_gaussian_process_regression(csv_file_path, random_state=42)
+
+    if results:
+        print("Results with default RBF kernel:")
+        for metric, value in results.items():
+            print(f"{metric}: {value:.4f}")
+
+    # Example 2: Specifying a custom kernel and optimizer restarts
+    # Define a kernel (e.g., RBF with length_scale=1.0)
+    kernel = C(1.0, constant_value_bounds=(1e-1, 10.0)) * RBF(1.0, length_scale_bounds=(1e-1, 10.0))
+    results = perform_gaussian_process_regression(csv_file_path, kernel=kernel, n_restarts_optimizer=5, random_state=42)
+
+    if results:
+        print("\nResults with custom kernel and optimizer restarts:")
+        for metric, value in results.items():
+            print(f"{metric}: {value:.4f}")`
+};
+
+const algorithmCodesss = {
+    "Linear Regression": `
+import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression
+from sklearn.preprocessing import LabelEncoder, StandardScaler
+from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score, accuracy_score, precision_score, recall_score, f1_score
+import matplotlib.pyplot as plt # Added matplotlib
+
+def perform_linear_regression(csv_file_path):
+    """
+    Performs linear regression automatically on a CSV file, selecting a numerical
+    target and treating other numerical columns as features. Then it calculates MSE,
+    MAE, R2, and converts to binary classification to get accuracy, precision,
+    recall, and F1-score.
+    """
+    try:
+        # Load data
+        df = pd.read_csv(csv_file_path)
+
+        # Identify numerical and categorical columns
+        numerical_cols = df.select_dtypes(include=np.number).columns.tolist()
+        categorical_cols = df.select_dtypes(include='object').columns.tolist() # Not used directly, but good to know
+
+        if not numerical_cols:
+            raise ValueError("No numerical columns found in the CSV file.")
+
+        # Select the LAST numerical column as the target variable
+        target_column = numerical_cols[-1]
+        features = numerical_cols[:-1] # All other numerical columns become features
+
+        if not features:
+            raise ValueError("No feature columns available (need at least two numerical columns).") #More descriptive error
+
+        # Handle missing values by imputing with the mean (numerical columns only)
+        for col in features:
+            df[col] = df[col].fillna(df[col].mean()) #Impute missing values in features
+        df[target_column] = df[target_column].fillna(df[target_column].mean())  # Impute missing values in the target column
+
+        # Separate features (X) and target (y)
+        X = df[features]
+        y = df[target_column]
+
+        # Split into training and testing sets
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+        # Scale the data - VERY IMPORTANT for linear models!
+        scaler = StandardScaler()
+        X_train_scaled = scaler.fit_transform(X_train)  # Fit on training data
+        X_test_scaled = scaler.transform(X_test)        # Apply transformation to test data
+
+
+        # Train the Linear Regression model
+        model = LinearRegression()
+        model.fit(X_train_scaled, y_train)
+
+        # Make predictions
+        y_pred = model.predict(X_test_scaled)
+
+
+        # Calculate regression metrics
+        mse = mean_squared_error(y_test, y_pred)
+        mae = mean_absolute_error(y_test, y_pred)
+        r2 = r2_score(y_test, y_pred)
+
+        # Convert predictions and actual values to binary for classification metrics
+        threshold = np.median(y_test)  # Use median as a simple threshold
+        y_pred_binary = (y_pred > threshold).astype(int)
+        y_test_binary = (y_test > threshold).astype(int)
+
+        # Calculate classification metrics (on the binarized data)
+        accuracy = accuracy_score(y_test_binary, y_pred_binary)
+        precision = precision_score(y_test_binary, y_pred_binary, average='weighted', zero_division=0) #Handle potential division by zero
+        recall = recall_score(y_test_binary, y_pred_binary, average='weighted', zero_division=0)      #Handle potential division by zero
+        f1 = f1_score(y_test_binary, y_pred_binary, average='weighted')
+
+        #Visualize
+        plt.figure(figsize=(8, 6))
+        plt.scatter(y_test, y_pred)
+        plt.xlabel("Actual Values")
+        plt.ylabel("Predicted Values")
+        plt.title("Actual vs. Predicted Values")
+        plt.plot([y_test.min(), y_test.max()], [y_test.min(), y_test.max()], 'k--', lw=2)  # Diagonal line
+        plt.show()
+
+        return {
+            "Mean Squared Error": mse,
+            "Mean Absolute Error": mae,
+            "R-squared": r2,
+            "Accuracy": accuracy,
+            "Precision": precision,
+            "Recall": recall,
+            "F1 Score": f1
+        }
+
+    except FileNotFoundError:
+        print("Error: File not found.")
+        return None
+    except ValueError as e:
+        print(f"Error: {e}")
+        return None
+    except Exception as e:
+        print(f"An unexpected error occurred: {e}")
+        return None
+
+
+# Example Usage:
+if __name__ == "__main__":
+    csv_file_path = "/content/your_data.csv"  # **REPLACE WITH YOUR CSV FILE PATH**
+    results = perform_linear_regression(csv_file_path)
+
+    if results:
+        for metric, value in results.items():
+            print(f"{metric}: {value:.4f}") #Format output
+`,
+"Decision Tree":`
+import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.preprocessing import LabelEncoder, StandardScaler
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, confusion_matrix
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+def perform_decision_tree(csv_file_path):
+    """
+    Performs Decision Tree classification automatically on a CSV file, selecting a binary target
+    and treating other numerical columns as features. Then it calculates accuracy,
+    precision, recall, and F1-score.
+    """
+    try:
+        # Load data
+        df = pd.read_csv(csv_file_path)
+
+        # Identify numerical and categorical columns
+        numerical_cols = df.select_dtypes(include=np.number).columns.tolist()
+        categorical_cols = df.select_dtypes(include='object').columns.tolist()
+
+        if not numerical_cols:
+            raise ValueError("No numerical columns found in the CSV file.")
+
+        # Select the LAST numerical column as the target variable
+        target_column = numerical_cols[-1]
+        features = numerical_cols[:-1]
+
+        if not features:
+            raise ValueError("No feature columns available (need at least two numerical columns).")
+
+        # Handle missing values by imputing with the mean
+        for col in features:
+            df[col] = df[col].fillna(df[col].mean())
+        df[target_column] = df[target_column].fillna(df[target_column].mean())
+
+        # Convert target variable to binary if necessary
+        df[target_column] = (df[target_column] > df[target_column].median()).astype(int)
+
+        # Separate features (X) and target (y)
+        X = df[features]
+        y = df[target_column]
+
+        # Split into training and testing sets
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+        # Train the Decision Tree model
+        model = DecisionTreeClassifier()
+        model.fit(X_train, y_train)
+
+        # Make predictions
+        y_pred = model.predict(X_test)
+
+        # Calculate classification metrics
+        accuracy = accuracy_score(y_test, y_pred)
+        precision = precision_score(y_test, y_pred)
+        recall = recall_score(y_test, y_pred)
+        f1 = f1_score(y_test, y_pred)
+
+        # Confusion Matrix Visualization
+        cm = confusion_matrix(y_test, y_pred)
+        plt.figure(figsize=(6, 5))
+        sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', xticklabels=["Class 0", "Class 1"], yticklabels=["Class 0", "Class 1"])
+        plt.xlabel("Predicted")
+        plt.ylabel("Actual")
+        plt.title("Confusion Matrix")
+        plt.show()
+
+        return {
+            "Accuracy": accuracy,
+            "Precision": precision,
+            "Recall": recall,
+            "F1-score": f1
+        }
+
+    except FileNotFoundError:
+        print("Error: File not found.")
+        return None
+    except ValueError as e:
+        print(f"Error: {e}")
+        return None
+    except Exception as e:
+        print(f"An unexpected error occurred: {e}")
+        return None
+
+# Example Usage:
+if __name__ == "__main__":
+    csv_file_path = "/content/your_data.csv"  # **REPLACE WITH YOUR CSV FILE PATH**
+    results = perform_decision_tree(csv_file_path)
+
+    if results:
+        for metric, value in results.items():
+            print(f"{metric}: {value:.4f}")
+
+`,
+    "Ridge Regression": `
+import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import Ridge
+from sklearn.preprocessing import LabelEncoder, StandardScaler
+from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score, accuracy_score, precision_score, recall_score, f1_score
+import matplotlib.pyplot as plt
+
+def perform_ridge_regression(csv_file_path, alpha=1.0):
+    """
+    Performs Ridge Regression automatically on a CSV file, selecting a numerical
+    target and treating other numerical columns as features. Then it calculates MSE,
+    MAE, R2, and converts to binary classification to get accuracy, precision,
+    recall, and F1-score.
+
+    Args:
+        csv_file_path (str): Path to the CSV file.
+        alpha (float): Regularization strength; must be a positive float.
+    """
+    try:
+        # Load data
+        df = pd.read_csv(csv_file_path)
+
+        # Identify numerical columns
+        numerical_cols = df.select_dtypes(include=np.number).columns.tolist()
+
+        if not numerical_cols:
+            raise ValueError("No numerical columns found in the CSV file.")
+
+        # Select target and features
+        target_column = numerical_cols[-1]
+        features = numerical_cols[:-1]
+
+        if not features:
+            raise ValueError("No feature columns available (need at least two numerical columns).")
+
+        # Handle missing values
+        for col in features:
+            df[col] = df[col].fillna(df[col].mean())
+        df[target_column] = df[target_column].fillna(df[target_column].mean())
+
+        # Separate features (X) and target (y)
+        X = df[features]
+        y = df[target_column]
+
+        # Split into training and testing sets
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+        # Scale the data - VERY IMPORTANT
+        scaler = StandardScaler()
+        X_train_scaled = scaler.fit_transform(X_train)
+        X_test_scaled = scaler.transform(X_test)
+
+        # Train the Ridge Regression model
+        model = Ridge(alpha=alpha)  # Use Ridge instead of LinearRegression
+        model.fit(X_train_scaled, y_train)
+
+        # Make predictions
+        y_pred = model.predict(X_test_scaled)
+
+        # Calculate regression metrics
+        mse = mean_squared_error(y_test, y_pred)
+        mae = mean_absolute_error(y_test, y_pred)
+        r2 = r2_score(y_test, y_pred)
+
+        # Convert predictions and actual values to binary for classification metrics
+        threshold = np.median(y_test)
+        y_pred_binary = (y_pred > threshold).astype(int)
+        y_test_binary = (y_test > threshold).astype(int)
+
+        # Calculate classification metrics
+        accuracy = accuracy_score(y_test_binary, y_pred_binary)
+        precision = precision_score(y_test_binary, y_pred_binary, average='weighted', zero_division=0)
+        recall = recall_score(y_test_binary, y_pred_binary, average='weighted', zero_division=0)
+        f1 = f1_score(y_test_binary, y_pred_binary, average='weighted')
+
+        #Visualize
+        plt.figure(figsize=(8, 6))
+        plt.scatter(y_test, y_pred)
+        plt.xlabel("Actual Values")
+        plt.ylabel("Predicted Values")
+        plt.title("Actual vs. Predicted Values")
+        plt.plot([y_test.min(), y_test.max()], [y_test.min(), y_test.max()], 'k--', lw=2)  # Diagonal line
+        plt.show()
+
+        return {
+            "Mean Squared Error": mse,
+            "Mean Absolute Error": mae,
+            "R-squared": r2,
+            "Accuracy": accuracy,
+            "Precision": precision,
+            "Recall": recall,
+            "F1 Score": f1
+        }
+
+    except FileNotFoundError:
+        print("Error: File not found.")
+        return None
+    except ValueError as e:
+        print(f"Error: {e}")
+        return None
+    except Exception as e:
+        print(f"An unexpected error occurred: {e}")
+        return None
+
+
+# Example Usage:
+if __name__ == "__main__":
+    csv_file_path = "/content/your_data.csv"  # **REPLACE WITH YOUR CSV FILE PATH**
+    results = perform_ridge_regression(csv_file_path, alpha=0.5) # You can change the alpha value
+
+    if results:
+        for metric, value in results.items():
+            print(f"{metric}: {value:.4f}")
+`,
+"Logistic Regression":`
+import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LogisticRegression
+from sklearn.preprocessing import LabelEncoder, StandardScaler
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, confusion_matrix
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+def perform_logistic_regression(csv_file_path):
+    """
+    Performs logistic regression automatically on a CSV file, selecting a binary target
+    and treating other numerical columns as features. Then it calculates accuracy,
+    precision, recall, and F1-score.
+    """
+    try:
+        # Load data
+        df = pd.read_csv(csv_file_path)
+
+        # Identify numerical and categorical columns
+        numerical_cols = df.select_dtypes(include=np.number).columns.tolist()
+        categorical_cols = df.select_dtypes(include='object').columns.tolist()
+
+        if not numerical_cols:
+            raise ValueError("No numerical columns found in the CSV file.")
+
+        # Select the LAST numerical column as the target variable
+        target_column = numerical_cols[-1]
+        features = numerical_cols[:-1]
+
+        if not features:
+            raise ValueError("No feature columns available (need at least two numerical columns).")
+
+        # Handle missing values by imputing with the mean
+        for col in features:
+            df[col] = df[col].fillna(df[col].mean())
+        df[target_column] = df[target_column].fillna(df[target_column].mean())
+
+        # Convert target variable to binary if necessary
+        df[target_column] = (df[target_column] > df[target_column].median()).astype(int)
+
+        # Separate features (X) and target (y)
+        X = df[features]
+        y = df[target_column]
+
+        # Split into training and testing sets
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+        # Scale the data
+        scaler = StandardScaler()
+        X_train_scaled = scaler.fit_transform(X_train)
+        X_test_scaled = scaler.transform(X_test)
+
+        # Train the Logistic Regression model
+        model = LogisticRegression()
+        model.fit(X_train_scaled, y_train)
+
+        # Make predictions
+        y_pred = model.predict(X_test_scaled)
+
+        # Calculate classification metrics
+        accuracy = accuracy_score(y_test, y_pred)
+        precision = precision_score(y_test, y_pred)
+        recall = recall_score(y_test, y_pred)
+        f1 = f1_score(y_test, y_pred)
+
+        # Confusion Matrix Visualization
+        cm = confusion_matrix(y_test, y_pred)
+        plt.figure(figsize=(6, 5))
+        sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', xticklabels=["Class 0", "Class 1"], yticklabels=["Class 0", "Class 1"])
+        plt.xlabel("Predicted")
+        plt.ylabel("Actual")
+        plt.title("Confusion Matrix")
+        plt.show()
+
+        return {
+            "Accuracy": accuracy,
+            "Precision": precision,
+            "Recall": recall,
+            "F1-score": f1
+        }
+
+    except FileNotFoundError:
+        print("Error: File not found.")
+        return None
+    except ValueError as e:
+        print(f"Error: {e}")
+        return None
+    except Exception as e:
+        print(f"An unexpected error occurred: {e}")
+        return None
+
+# Example Usage:
+if __name__ == "__main__":
+    csv_file_path = "/content/your_data.csv"  # **REPLACE WITH YOUR CSV FILE PATH**
+    results = perform_logistic_regression(csv_file_path)
+
+    if results:
+        for metric, value in results.items():
+            print(f"{metric}: {value:.4f}")
+
+`,
+
+"Lasso Regression":`
+import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import Lasso
+from sklearn.preprocessing import LabelEncoder, StandardScaler
+from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score, accuracy_score, precision_score, recall_score, f1_score
+import matplotlib.pyplot as plt
+
+def perform_lasso_regression(csv_file_path, alpha=1.0):
+    """
+    Performs Lasso Regression automatically on a CSV file, selecting a numerical
+    target and treating other numerical columns as features. Then it calculates MSE,
+    MAE, R2, and converts to binary classification to get accuracy, precision,
+    recall, and F1-score.
+
+    Args:
+        csv_file_path (str): Path to the CSV file.
+        alpha (float): Regularization strength; must be a positive float.  Higher alpha values
+                       lead to more features being set to zero (more sparsity).
+    """
+    try:
+        # Load data
+        df = pd.read_csv(csv_file_path)
+
+        # Identify numerical columns
+        numerical_cols = df.select_dtypes(include=np.number).columns.tolist()
+
+        if not numerical_cols:
+            raise ValueError("No numerical columns found in the CSV file.")
+
+        # Select target and features
+        target_column = numerical_cols[-1]
+        features = numerical_cols[:-1]
+
+        if not features:
+            raise ValueError("No feature columns available (need at least two numerical columns).")
+
+        # Handle missing values
+        for col in features:
+            df[col] = df[col].fillna(df[col].mean())
+        df[target_column] = df[target_column].fillna(df[target_column].mean())
+
+        # Separate features (X) and target (y)
+        X = df[features]
+        y = df[target_column]
+
+        # Split into training and testing sets
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+        # Scale the data - VERY IMPORTANT
+        scaler = StandardScaler()
+        X_train_scaled = scaler.fit_transform(X_train)
+        X_test_scaled = scaler.transform(X_test)
+
+        # Train the Lasso Regression model
+        model = Lasso(alpha=alpha)  # Use Lasso instead of LinearRegression
+        model.fit(X_train_scaled, y_train)
+
+        # Make predictions
+        y_pred = model.predict(X_test_scaled)
+
+        # Calculate regression metrics
+        mse = mean_squared_error(y_test, y_pred)
+        mae = mean_absolute_error(y_test, y_pred)
+        r2 = r2_score(y_test, y_pred)
+
+        # Convert predictions and actual values to binary for classification metrics
+        threshold = np.median(y_test)
+        y_pred_binary = (y_pred > threshold).astype(int)
+        y_test_binary = (y_test > threshold).astype(int)
+
+        #Visualize
+        plt.figure(figsize=(8, 6))
+        plt.scatter(y_test, y_pred)
+        plt.xlabel("Actual Values")
+        plt.ylabel("Predicted Values")
+        plt.title("Actual vs. Predicted Values")
+        plt.plot([y_test.min(), y_test.max()], [y_test.min(), y_test.max()], 'k--', lw=2)  # Diagonal line
+        plt.show()
+
+        return {
+            "Mean Squared Error": mse,
+            "Mean Absolute Error": mae,
+            "R-squared": r2
+        }
+
+    except FileNotFoundError:
+        print("Error: File not found.")
+        return None
+    except ValueError as e:
+        print(f"Error: {e}")
+        return None
+    except Exception as e:
+        print(f"An unexpected error occurred: {e}")
+        return None
+
+
+# Example Usage:
+if __name__ == "__main__":
+    csv_file_path = "/content/your-file-path.csv"  # **REPLACE WITH YOUR CSV FILE PATH**
+    results = perform_lasso_regression(csv_file_path, alpha=0.1) # Adjust alpha value
+
+    if results:
+        for metric, value in results.items():
+            print(f"{metric}: {value:.4f}")
+`
+,
+"Random Forest" : `
+import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.preprocessing import LabelEncoder, StandardScaler
+from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
+import matplotlib.pyplot as plt
+
+def perform_random_forest_regression(csv_file_path, n_estimators=100, random_state=42):
+    """
+    Performs Random Forest Regression automatically on a CSV file, selecting a numerical
+    target and treating other numerical columns as features.  Calculates MSE, MAE, and R2.
+
+    Args:
+        csv_file_path (str): Path to the CSV file.
+        n_estimators (int): The number of trees in the forest.
+        random_state (int): Controls the randomness of the estimator.
+    """
+    try:
+        # Load data
+        df = pd.read_csv(csv_file_path)
+
+        # Identify numerical columns
+        numerical_cols = df.select_dtypes(include=np.number).columns.tolist()
+
+        if not numerical_cols:
+            raise ValueError("No numerical columns found in the CSV file.")
+
+        # Select target and features
+        target_column = numerical_cols[-1]
+        features = numerical_cols[:-1]
+
+        if not features:
+            raise ValueError("No feature columns available (need at least two numerical columns).")
+
+        # Handle missing values
+        for col in features:
+            df[col] = df[col].fillna(df[col].mean())
+        df[target_column] = df[target_column].fillna(df[target_column].mean())
+
+        # Separate features (X) and target (y)
+        X = df[features]
+        y = df[target_column]
+
+        # Split into training and testing sets
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=random_state)
+
+        # Scale the data
+        scaler = StandardScaler()
+        X_train_scaled = scaler.fit_transform(X_train)
+        X_test_scaled = scaler.transform(X_test)
+
+        # Train the Random Forest Regression model
+        model = RandomForestRegressor(n_estimators=n_estimators, random_state=random_state)
+        model.fit(X_train_scaled, y_train)
+
+        # Make predictions
+        y_pred = model.predict(X_test_scaled)
+
+        # Calculate regression metrics
+        mse = mean_squared_error(y_test, y_pred)
+        mae = mean_absolute_error(y_test, y_pred)
+        r2 = r2_score(y_test, y_pred)
+
+        #Visualize
+        plt.figure(figsize=(8, 6))
+        plt.scatter(y_test, y_pred)
+        plt.xlabel("Actual Values")
+        plt.ylabel("Predicted Values")
+        plt.title("Actual vs. Predicted Values")
+        plt.plot([y_test.min(), y_test.max()], [y_test.min(), y_test.max()], 'k--', lw=2)  # Diagonal line
+        plt.show()
+
+        return {
+            "Mean Squared Error": mse,
+            "Mean Absolute Error": mae,
+            "R-squared": r2
+        }
+
+    except FileNotFoundError:
+        print("Error: File not found.")
+        return None
+    except ValueError as e:
+        print(f"Error: {e}")
+        return None
+    except Exception as e:
+        print(f"An unexpected error occurred: {e}")
+        return None
+
+
+# Example Usage:
+if __name__ == "__main__":
+    csv_file_path = "/content/your-file-path.csv"  # **REPLACE WITH YOUR CSV FILE PATH**
+    results = perform_random_forest_regression(csv_file_path, n_estimators=200, random_state=42)
+
+    if results:
+        for metric, value in results.items():
+            print(f"{metric}: {value:.4f}")
+`,
+"Gradient Boosting":`import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import GradientBoostingRegressor
+from sklearn.preprocessing import LabelEncoder, StandardScaler
+from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
+import matplotlib.pyplot as plt
+
+def perform_gradient_boosting_regression(csv_file_path, n_estimators=100, learning_rate=0.1, max_depth=3, random_state=42):
+    """
+    Performs Gradient Boosting Regression automatically on a CSV file, selecting a numerical
+    target and treating other numerical columns as features.  Calculates MSE, MAE, and R2.
+
+    Args:
+        csv_file_path (str): Path to the CSV file.
+        n_estimators (int): The number of boosting stages to perform.
+        learning_rate (float): Learning rate shrinks the contribution of each tree by learning_rate.
+        max_depth (int): Maximum depth of the individual regression estimators.
+        random_state (int): Controls the randomness of the estimator.
+    """
+    try:
+        # Load data
+        df = pd.read_csv(csv_file_path)
+
+        # Identify numerical columns
+        numerical_cols = df.select_dtypes(include=np.number).columns.tolist()
+
+        if not numerical_cols:
+            raise ValueError("No numerical columns found in the CSV file.")
+
+        # Select target and features
+        target_column = numerical_cols[-1]
+        features = numerical_cols[:-1]
+
+        if not features:
+            raise ValueError("No feature columns available (need at least two numerical columns).")
+
+        # Handle missing values
+        for col in features:
+            df[col] = df[col].fillna(df[col].mean())
+        df[target_column] = df[target_column].fillna(df[target_column].mean())
+
+        # Separate features (X) and target (y)
+        X = df[features]
+        y = df[target_column]
+
+        # Split into training and testing sets
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=random_state)
+
+        # Scale the data
+        scaler = StandardScaler()
+        X_train_scaled = scaler.fit_transform(X_train)
+        X_test_scaled = scaler.transform(X_test)
+
+        # Train the Gradient Boosting Regression model
+        model = GradientBoostingRegressor(n_estimators=n_estimators, learning_rate=learning_rate, max_depth=max_depth, random_state=random_state)
+        model.fit(X_train_scaled, y_train)
+
+        # Make predictions
+        y_pred = model.predict(X_test_scaled)
+
+        # Calculate regression metrics
+        mse = mean_squared_error(y_test, y_pred)
+        mae = mean_absolute_error(y_test, y_pred)
+        r2 = r2_score(y_test, y_pred)
+
+        #Visualize
+        plt.figure(figsize=(8, 6))
+        plt.scatter(y_test, y_pred)
+        plt.xlabel("Actual Values")
+        plt.ylabel("Predicted Values")
+        plt.title("Actual vs. Predicted Values")
+        plt.plot([y_test.min(), y_test.max()], [y_test.min(), y_test.max()], 'k--', lw=2)  # Diagonal line
+        plt.show()
+
+        return {
+            "Mean Squared Error": mse,
+            "Mean Absolute Error": mae,
+            "R-squared": r2
+        }
+
+    except FileNotFoundError:
+        print("Error: File not found.")
+        return None
+    except ValueError as e:
+        print(f"Error: {e}")
+        return None
+    except Exception as e:
+        print(f"An unexpected error occurred: {e}")
+        return None
+
+
+# Example Usage:
+if __name__ == "__main__":
+    csv_file_path = "/content/your_data.csv"  # **REPLACE WITH YOUR CSV FILE PATH**
+    results = perform_gradient_boosting_regression(csv_file_path, n_estimators=200, learning_rate=0.05, max_depth=4, random_state=42)
+
+    if results:
+        for metric, value in results.items():
+            print(f"{metric}: {value:.4f}")
+            `, 
+"AdaBoost":
+`import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import AdaBoostRegressor
+from sklearn.preprocessing import LabelEncoder, StandardScaler
+from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
+import matplotlib.pyplot as plt
+
+def perform_adaboost_regression(csv_file_path, n_estimators=50, learning_rate=1.0, random_state=None):
+    """
+    Performs AdaBoost Regression automatically on a CSV file, selecting a numerical
+    target and treating other numerical columns as features.  Calculates MSE, MAE, and R2.
+
+    Args:
+        csv_file_path (str): Path to the CSV file.
+        n_estimators (int): The maximum number of estimators at which boosting is terminated.
+        learning_rate (float): Weight applied to each estimator. A higher learning rate increases the contribution
+                                of each estimator. There is a trade-off between learning_rate and n_estimators.
+        random_state (int, optional): Controls the randomness of the estimator.
+    """
+    try:
+        # Load data
+        df = pd.read_csv(csv_file_path)
+
+        # Identify numerical columns
+        numerical_cols = df.select_dtypes(include=np.number).columns.tolist()
+
+        if not numerical_cols:
+            raise ValueError("No numerical columns found in the CSV file.")
+
+        # Select target and features
+        target_column = numerical_cols[-1]
+        features = numerical_cols[:-1]
+
+        if not features:
+            raise ValueError("No feature columns available (need at least two numerical columns).")
+
+        # Handle missing values
+        for col in features:
+            df[col] = df[col].fillna(df[col].mean())
+        df[target_column] = df[target_column].fillna(df[target_column].mean())
+
+        # Separate features (X) and target (y)
+        X = df[features]
+        y = df[target_column]
+
+        # Split into training and testing sets
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=random_state)
+
+        # Scale the data
+        scaler = StandardScaler()
+        X_train_scaled = scaler.fit_transform(X_train)
+        X_test_scaled = scaler.transform(X_test)
+
+        # Train the AdaBoost Regression model
+        model = AdaBoostRegressor(n_estimators=n_estimators, learning_rate=learning_rate, random_state=random_state)
+        model.fit(X_train_scaled, y_train)
+
+        # Make predictions
+        y_pred = model.predict(X_test_scaled)
+
+        # Calculate regression metrics
+        mse = mean_squared_error(y_test, y_pred)
+        mae = mean_absolute_error(y_test, y_pred)
+        r2 = r2_score(y_test, y_pred)
+
+        #Visualize
+        plt.figure(figsize=(8, 6))
+        plt.scatter(y_test, y_pred)
+        plt.xlabel("Actual Values")
+        plt.ylabel("Predicted Values")
+        plt.title("Actual vs. Predicted Values")
+        plt.plot([y_test.min(), y_test.max()], [y_test.min(), y_test.max()], 'k--', lw=2)  # Diagonal line
+        plt.show()
+
+        return {
+            "Mean Squared Error": mse,
+            "Mean Absolute Error": mae,
+            "R-squared": r2
+        }
+
+    except FileNotFoundError:
+        print("Error: File not found.")
+        return None
+    except ValueError as e:
+        print(f"Error: {e}")
+        return None
+    except Exception as e:
+        print(f"An unexpected error occurred: {e}")
+        return None
+
+
+# Example Usage:
+if __name__ == "__main__":
+    csv_file_path = "/content/your_data.csv"  # **REPLACE WITH YOUR CSV FILE PATH**
+    results = perform_adaboost_regression(csv_file_path, n_estimators=100, learning_rate=0.5, random_state=42)
+
+    if results:
+        for metric, value in results.items():
+            print(f"{metric}: {value:.4f}")
+            `,
+"KNN":
+`import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.neighbors import KNeighborsRegressor
+from sklearn.preprocessing import StandardScaler
+from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
+import matplotlib.pyplot as plt
+
+def perform_knn_regression(csv_file_path, n_neighbors=5, weights='uniform', algorithm='auto', random_state=42):
+    """
+    Performs KNN Regression automatically on a CSV file, selecting a numerical
+    target and treating other numerical columns as features. Calculates MSE, MAE, and R2.
+
+    Args:
+        csv_file_path (str): Path to the CSV file.
+        n_neighbors (int): Number of neighbors to use.
+        weights (str): Weight function used in prediction.  'uniform' or 'distance'.
+        algorithm (str): Algorithm used to compute the nearest neighbors. 'auto', 'ball_tree', 'kd_tree', 'brute'.
+        random_state (int): Controls the randomness of the train_test_split.
+    """
+    try:
+        # Load data
+        df = pd.read_csv(csv_file_path)
+
+        # Identify numerical columns
+        numerical_cols = df.select_dtypes(include=np.number).columns.tolist()
+
+        if not numerical_cols:
+            raise ValueError("No numerical columns found in the CSV file.")
+
+        # Select target and features
+        target_column = numerical_cols[-1]
+        features = numerical_cols[:-1]
+
+        if not features:
+            raise ValueError("No feature columns available (need at least two numerical columns).")
+
+        # Handle missing values
+        for col in features:
+            df[col] = df[col].fillna(df[col].mean())
+        df[target_column] = df[target_column].fillna(df[target_column].mean())
+
+        # Separate features (X) and target (y)
+        X = df[features]
+        y = df[target_column]
+
+        # Split into training and testing sets
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=random_state)
+
+        # Scale the data
+        scaler = StandardScaler()
+        X_train_scaled = scaler.fit_transform(X_train)
+        X_test_scaled = scaler.transform(X_test)
+
+        # Train the KNN Regression model
+        model = KNeighborsRegressor(n_neighbors=n_neighbors, weights=weights, algorithm=algorithm)
+        model.fit(X_train_scaled, y_train)
+
+        # Make predictions
+        y_pred = model.predict(X_test_scaled)
+
+        # Calculate regression metrics
+        mse = mean_squared_error(y_test, y_pred)
+        mae = mean_absolute_error(y_test, y_pred)
+        r2 = r2_score(y_test, y_pred)
+
+        # Visualize
+        plt.figure(figsize=(8, 6))
+        plt.scatter(y_test, y_pred)
+        plt.xlabel("Actual Values")
+        plt.ylabel("Predicted Values")
+        plt.title("Actual vs. Predicted Values")
+        plt.plot([y_test.min(), y_test.max()], [y_test.min(), y_test.max()], 'k--', lw=2)  # Diagonal line
+        plt.show()
+
+
+        return {
+            "Mean Squared Error": mse,
+            "Mean Absolute Error": mae,
+            "R-squared": r2
+        }
+
+    except FileNotFoundError:
+        print("Error: File not found.")
+        return None
+    except ValueError as e:
+        print(f"Error: {e}")
+        return None
+    except Exception as e:
+        print(f"An unexpected error occurred: {e}")
+        return None
+
+
+# Example Usage:
+if __name__ == "__main__":
+    csv_file_path = "/content/your_data.csv"  # **REPLACE WITH YOUR CSV FILE PATH**
+    results = perform_knn_regression(csv_file_path, n_neighbors=7, weights='distance', algorithm='auto', random_state=42)
+
+    if results:
+        for metric, value in results.items():
+            print(f"{metric}: {value:.4f}")`,
+"SVM":
+`import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.svm import SVR
+from sklearn.preprocessing import StandardScaler
+from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
+import matplotlib.pyplot as plt
+
+def perform_svm_regression(csv_file_path, kernel='rbf', C=1.0, epsilon=0.1, random_state=42):
+    """
+    Performs Support Vector Machine (SVM) Regression automatically on a CSV file,
+    selecting a numerical target and treating other numerical columns as features.
+    Calculates MSE, MAE, and R2.
+
+    Args:
+        csv_file_path (str): Path to the CSV file.
+        kernel (str): Kernel type to be used in the algorithm. 'linear', 'poly', 'rbf', 'sigmoid', 'precomputed'.
+        C (float): Regularization parameter. The strength of the regularization is inversely proportional to C.
+        epsilon (float): Specifies the epsilon-tube within which no penalty is associated in the training loss function.
+        random_state (int): Controls the randomness of the train_test_split and potentially the solver (if applicable).
+    """
+    try:
+        # Load data
+        df = pd.read_csv(csv_file_path)
+
+        # Identify numerical columns
+        numerical_cols = df.select_dtypes(include=np.number).columns.tolist()
+
+        if not numerical_cols:
+            raise ValueError("No numerical columns found in the CSV file.")
+
+        # Select target and features
+        target_column = numerical_cols[-1]
+        features = numerical_cols[:-1]
+
+        if not features:
+            raise ValueError("No feature columns available (need at least two numerical columns).")
+
+        # Handle missing values
+        for col in features:
+            df[col] = df[col].fillna(df[col].mean())
+        df[target_column] = df[target_column].fillna(df[target_column].mean())
+
+        # Separate features (X) and target (y)
+        X = df[features]
+        y = df[target_column]
+
+        # Split into training and testing sets
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=random_state)
+
+        # Scale the data
+        scaler = StandardScaler()
+        X_train_scaled = scaler.fit_transform(X_train)
+        X_test_scaled = scaler.transform(X_test)
+
+        # Train the SVM Regression model
+        model = SVR(kernel=kernel, C=C, epsilon=epsilon)
+        model.fit(X_train_scaled, y_train)
+
+        # Make predictions
+        y_pred = model.predict(X_test_scaled)
+
+        # Calculate regression metrics
+        mse = mean_squared_error(y_test, y_pred)
+        mae = mean_absolute_error(y_test, y_pred)
+        r2 = r2_score(y_test, y_pred)
+
+        # Visualize
+        plt.figure(figsize=(8, 6))
+        plt.scatter(y_test, y_pred)
+        plt.xlabel("Actual Values")
+        plt.ylabel("Predicted Values")
+        plt.title("Actual vs. Predicted Values")
+        plt.plot([y_test.min(), y_test.max()], [y_test.min(), y_test.max()], 'k--', lw=2)  # Diagonal line
+        plt.show()
+
+
+        return {
+            "Mean Squared Error": mse,
+            "Mean Absolute Error": mae,
+            "R-squared": r2
+        }
+
+    except FileNotFoundError:
+        print("Error: File not found.")
+        return None
+    except ValueError as e:
+        print(f"Error: {e}")
+        return None
+    except Exception as e:
+        print(f"An unexpected error occurred: {e}")
+        return None
+
+
+# Example Usage:
+if __name__ == "__main__":
+    csv_file_path = "/content/your_data.csv"  # **REPLACE WITH YOUR CSV FILE PATH**
+    results = perform_svm_regression(csv_file_path, kernel='rbf', C=1.0, epsilon=0.1, random_state=42)
+
+    if results:
+        for metric, value in results.items():
+            print(f"{metric}: {value:.4f}")`,
+"Gaussian Naive Bayes":`
+import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.naive_bayes import GaussianNB
+from sklearn.preprocessing import LabelEncoder, StandardScaler
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, confusion_matrix
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+def perform_gaussian_naive_bayes(csv_file_path):
+    """
+    Performs Gaussian Naive Bayes classification automatically on a CSV file, selecting a binary target
+    and treating other numerical columns as features. Then it calculates accuracy,
+    precision, recall, and F1-score.
+    """
+    try:
+        # Load data
+        df = pd.read_csv(csv_file_path)
+
+        # Identify numerical and categorical columns
+        numerical_cols = df.select_dtypes(include=np.number).columns.tolist()
+        categorical_cols = df.select_dtypes(include='object').columns.tolist()
+
+        if not numerical_cols:
+            raise ValueError("No numerical columns found in the CSV file.")
+
+        # Select the LAST numerical column as the target variable
+        target_column = numerical_cols[-1]
+        features = numerical_cols[:-1]
+
+        if not features:
+            raise ValueError("No feature columns available (need at least two numerical columns).")
+
+        # Handle missing values by imputing with the mean
+        for col in features:
+            df[col] = df[col].fillna(df[col].mean())
+        df[target_column] = df[target_column].fillna(df[target_column].mean())
+
+        # Convert target variable to binary if necessary
+        df[target_column] = (df[target_column] > df[target_column].median()).astype(int)
+
+        # Separate features (X) and target (y)
+        X = df[features]
+        y = df[target_column]
+
+        # Split into training and testing sets
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+        # Train the Gaussian Naive Bayes model
+        model = GaussianNB()
+        model.fit(X_train, y_train)
+
+        # Make predictions
+        y_pred = model.predict(X_test)
+
+        # Calculate classification metrics
+        accuracy = accuracy_score(y_test, y_pred)
+        precision = precision_score(y_test, y_pred)
+        recall = recall_score(y_test, y_pred)
+        f1 = f1_score(y_test, y_pred)
+
+        # Confusion Matrix Visualization
+        cm = confusion_matrix(y_test, y_pred)
+        plt.figure(figsize=(6, 5))
+        sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', xticklabels=["Class 0", "Class 1"], yticklabels=["Class 0", "Class 1"])
+        plt.xlabel("Predicted")
+        plt.ylabel("Actual")
+        plt.title("Confusion Matrix")
+        plt.show()
+
+        return {
+            "Accuracy": accuracy,
+            "Precision": precision,
+            "Recall": recall,
+            "F1-score": f1
+        }
+
+    except FileNotFoundError:
+        print("Error: File not found.")
+        return None
+    except ValueError as e:
+        print(f"Error: {e}")
+        return None
+    except Exception as e:
+        print(f"An unexpected error occurred: {e}")
+        return None
+
+# Example Usage:
+if __name__ == "__main__":
+    csv_file_path = "/content/your_data.csv"  # **REPLACE WITH YOUR CSV FILE PATH**
+    results = perform_gaussian_naive_bayes(csv_file_path)
+
+    if results:
+        for metric, value in results.items():
+            print(f"{metric}: {value:.4f}")
+`,
+
+"Linear Discriminant Analysis":`
+import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
+from sklearn.preprocessing import LabelEncoder, StandardScaler
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, confusion_matrix
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+def perform_lda(csv_file_path):
+    """
+    Performs Linear Discriminant Analysis (LDA) classification automatically on a CSV file, selecting a binary target
+    and treating other numerical columns as features. Then it calculates accuracy,
+    precision, recall, and F1-score.
+    """
+    try:
+        # Load data
+        df = pd.read_csv(csv_file_path)
+
+        # Identify numerical and categorical columns
+        numerical_cols = df.select_dtypes(include=np.number).columns.tolist()
+        categorical_cols = df.select_dtypes(include='object').columns.tolist()
+
+        if not numerical_cols:
+            raise ValueError("No numerical columns found in the CSV file.")
+
+        # Select the LAST numerical column as the target variable
+        target_column = numerical_cols[-1]
+        features = numerical_cols[:-1]
+
+        if not features:
+            raise ValueError("No feature columns available (need at least two numerical columns).")
+
+        # Handle missing values by imputing with the mean
+        for col in features:
+            df[col] = df[col].fillna(df[col].mean())
+        df[target_column] = df[target_column].fillna(df[target_column].mean())
+
+        # Convert target variable to binary if necessary
+        df[target_column] = (df[target_column] > df[target_column].median()).astype(int)
+
+        # Separate features (X) and target (y)
+        X = df[features]
+        y = df[target_column]
+
+        # Split into training and testing sets
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+        # Train the Linear Discriminant Analysis model
+        model = LinearDiscriminantAnalysis()
+        model.fit(X_train, y_train)
+
+        # Make predictions
+        y_pred = model.predict(X_test)
+
+        # Calculate classification metrics
+        accuracy = accuracy_score(y_test, y_pred)
+        precision = precision_score(y_test, y_pred)
+        recall = recall_score(y_test, y_pred)
+        f1 = f1_score(y_test, y_pred)
+
+        # Confusion Matrix Visualization
+        cm = confusion_matrix(y_test, y_pred)
+        plt.figure(figsize=(6, 5))
+        sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', xticklabels=["Class 0", "Class 1"], yticklabels=["Class 0", "Class 1"])
+        plt.xlabel("Predicted")
+        plt.ylabel("Actual")
+        plt.title("Confusion Matrix")
+        plt.show()
+
+        return {
+            "Accuracy": accuracy,
+            "Precision": precision,
+            "Recall": recall,
+            "F1-score": f1
+        }
+
+    except FileNotFoundError:
+        print("Error: File not found.")
+        return None
+    except ValueError as e:
+        print(f"Error: {e}")
+        return None
+    except Exception as e:
+        print(f"An unexpected error occurred: {e}")
+        return None
+
+# Example Usage:
+if __name__ == "__main__":
+    csv_file_path = "/content/your_data.csv"  # **REPLACE WITH YOUR CSV FILE PATH**
+    results = perform_lda(csv_file_path)
+
+    if results:
+        for metric, value in results.items():
+            print(f"{metric}: {value:.4f}")
+`,
+"MLP Classifier":`
+import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.neural_network import MLPClassifier
+from sklearn.preprocessing import StandardScaler
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, confusion_matrix
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+def perform_mlp_classification(csv_file_path):
+    """
+    Performs classification using an MLP (Multi-Layer Perceptron) classifier automatically on a CSV file,
+    selecting a binary target and treating other numerical columns as features. Then it calculates accuracy,
+    precision, recall, and F1-score.
+    """
+    try:
+        # Load data
+        df = pd.read_csv(csv_file_path)
+
+        # Identify numerical columns
+        numerical_cols = df.select_dtypes(include=np.number).columns.tolist()
+
+        if not numerical_cols:
+            raise ValueError("No numerical columns found in the CSV file.")
+
+        # Select the LAST numerical column as the target variable
+        target_column = numerical_cols[-1]
+        features = numerical_cols[:-1]
+
+        if not features:
+            raise ValueError("No feature columns available (need at least two numerical columns).")
+
+        # Handle missing values by imputing with the mean
+        df.fillna(df.mean(), inplace=True)
+
+        # Convert target variable to binary if necessary
+        df[target_column] = (df[target_column] > df[target_column].median()).astype(int)
+
+        # Separate features (X) and target (y)
+        X = df[features]
+        y = df[target_column]
+
+        # Split into training and testing sets
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+        # Scale the data
+        scaler = StandardScaler()
+        X_train = scaler.fit_transform(X_train)
+        X_test = scaler.transform(X_test)
+
+        # Train the MLP classifier
+        model = MLPClassifier(hidden_layer_sizes=(100,), max_iter=500, random_state=42)
+        model.fit(X_train, y_train)
+
+        # Make predictions
+        y_pred = model.predict(X_test)
+
+        # Calculate classification metrics
+        accuracy = accuracy_score(y_test, y_pred)
+        precision = precision_score(y_test, y_pred)
+        recall = recall_score(y_test, y_pred)
+        f1 = f1_score(y_test, y_pred)
+
+        # Confusion Matrix Visualization
+        cm = confusion_matrix(y_test, y_pred)
+        plt.figure(figsize=(6, 5))
+        sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', xticklabels=["Class 0", "Class 1"], yticklabels=["Class 0", "Class 1"])
+        plt.xlabel("Predicted")
+        plt.ylabel("Actual")
+        plt.title("Confusion Matrix")
+        plt.show()
+
+        return {
+            "Accuracy": accuracy,
+            "Precision": precision,
+            "Recall": recall,
+            "F1-score": f1
+        }
+
+    except FileNotFoundError:
+        print("Error: File not found.")
+        return None
+    except ValueError as e:
+        print(f"Error: {e}")
+        return None
+    except Exception as e:
+        print(f"An unexpected error occurred: {e}")
+        return None
+
+# Example Usage:
+if __name__ == "__main__":
+    csv_file_path = "/content/your_data.csv"  # **REPLACE WITH YOUR CSV FILE PATH**
+    results = perform_mlp_classification(csv_file_path)
+
+    if results:
+        for metric, value in results.items():
+            print(f"{metric}: {value:.4f}")
+
+`,
+"Gaussian Process":
+`import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.gaussian_process import GaussianProcessRegressor
+from sklearn.gaussian_process.kernels import RBF, ConstantKernel as C
+from sklearn.preprocessing import StandardScaler
+from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
+import matplotlib.pyplot as plt
+
+def perform_gaussian_process_regression(csv_file_path, kernel=None, alpha=1e-10, n_restarts_optimizer=0, random_state=42):
+    """
+    Performs Gaussian Process Regression automatically on a CSV file, selecting a numerical
+    target and treating other numerical columns as features. Calculates MSE, MAE, and R2.
+
+    Args:
+        csv_file_path (str): Path to the CSV file.
+        kernel (sklearn.gaussian_process.kernels): Kernel specifying the covariance function of the GP.
+                                            If None, a default RBF kernel is used.
+        alpha (float): Value added to the diagonal of the kernel matrix during fitting.
+                       Larger values result in more robust predictions but can increase bias.  This is effectively
+                       regularization.
+        n_restarts_optimizer (int): The number of restarts of the optimizer for finding the kernel’s parameters.
+                                     Can help avoid local optima.
+        random_state (int): Controls the randomness of the train_test_split.
+    """
+    try:
+        # Load data
+        df = pd.read_csv(csv_file_path)
+
+        # Identify numerical columns
+        numerical_cols = df.select_dtypes(include=np.number).columns.tolist()
+
+        if not numerical_cols:
+            raise ValueError("No numerical columns found in the CSV file.")
+
+        # Select target and features
+        target_column = numerical_cols[-1]
+        features = numerical_cols[:-1]
+
+        if not features:
+            raise ValueError("No feature columns available (need at least two numerical columns).")
+
+        # Handle missing values
+        for col in features:
+            df[col] = df[col].fillna(df[col].mean())
+        df[target_column] = df[target_column].fillna(df[target_column].mean())
+
+        # Separate features (X) and target (y)
+        X = df[features]
+        y = df[target_column]
+
+        # Split into training and testing sets
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=random_state)
+
+        # Scale the data
+        scaler = StandardScaler()
+        X_train_scaled = scaler.fit_transform(X_train)
+        X_test_scaled = scaler.transform(X_test)
+
+        # Define the default kernel if none is provided
+        if kernel is None:
+            kernel = C(1.0, constant_value_bounds="fixed") * RBF(1.0, length_scale_bounds="fixed")  # Default RBF kernel
+
+        # Train the Gaussian Process Regression model
+        model = GaussianProcessRegressor(kernel=kernel, alpha=alpha, n_restarts_optimizer=n_restarts_optimizer, random_state=random_state)
+        model.fit(X_train_scaled, y_train)
+
+        # Make predictions
+        y_pred = model.predict(X_test_scaled)
+
+        # Calculate regression metrics
+        mse = mean_squared_error(y_test, y_pred)
+        mae = mean_absolute_error(y_test, y_pred)
+        r2 = r2_score(y_test, y_pred)
+
+        # Visualize
+        plt.figure(figsize=(8, 6))
+        plt.scatter(y_test, y_pred)
+        plt.xlabel("Actual Values")
+        plt.ylabel("Predicted Values")
+        plt.title("Actual vs. Predicted Values")
+        plt.plot([y_test.min(), y_test.max()], [y_test.min(), y_test.max()], 'k--', lw=2)  # Diagonal line
+        plt.show()
+
+
+        return {
+            "Mean Squared Error": mse,
+            "Mean Absolute Error": mae,
+            "R-squared": r2
+        }
+
+    except FileNotFoundError:
+        print("Error: File not found.")
+        return None
+    except ValueError as e:
+        print(f"Error: {e}")
+        return None
+    except Exception as e:
+        print(f"An unexpected error occurred: {e}")
+        return None
+
+
+# Example Usage:
+if __name__ == "__main__":
+    csv_file_path = "/content/your-file.csv"  # **REPLACE WITH YOUR CSV FILE PATH**
+
+    # Example 1: Using the default RBF kernel with no optimizer restarts
+    results = perform_gaussian_process_regression(csv_file_path, random_state=42)
+
+    if results:
+        print("Results with default RBF kernel:")
+        for metric, value in results.items():
+            print(f"{metric}: {value:.4f}")
+
+    # Example 2: Specifying a custom kernel and optimizer restarts
+    # Define a kernel (e.g., RBF with length_scale=1.0)
+    kernel = C(1.0, constant_value_bounds=(1e-1, 10.0)) * RBF(1.0, length_scale_bounds=(1e-1, 10.0))
+    results = perform_gaussian_process_regression(csv_file_path, kernel=kernel, n_restarts_optimizer=5, random_state=42)
+
+    if results:
+        print("\nResults with custom kernel and optimizer restarts:")
+        for metric, value in results.items():
+            print(f"{metric}: {value:.4f}")`
+};
+
+// Function to handle plot selection from dropdown
+function selectPlotOption(element, plotType) {
+    document.querySelector(".selected-option").innerText = plotType;  // Update dropdown display
+    document.getElementById("plotModel").value = plotType;  // Store selected plot
+}
+
+async function runPlotting() {
+    const selectedPlot = document.getElementById('plotModel').value;
+
+    if (!selectedPlot) {
+        alert("Please select a plot type.");
+        return;
+    }
+
+    const response = await fetch("http://127.0.0.1:5000/generate-plot", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ plotType: selectedPlot })
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+        const plotResults = document.getElementById("plotResults");
+        plotResults.innerHTML = `<h3>Plot Results</h3>
+            <img src="data:image/png;base64,${data.plotImage}" alt="Generated Plot" style="max-width: 100%;">`;
+    } else {
+        alert(`Error: ${data.error}`);
+    }
+}
+
+function downloadPlotReport() {
+    let imgElement = document.querySelector("#plotResults img");
+    if (!imgElement || !imgElement.src.startsWith("data:image/png;base64")) {
+        alert("No plot available to download.");
+        return;
+    }
+
+    let link = document.createElement("a");
+    link.href = imgElement.src;
+    link.download = "plot.png";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+
+async function uploadFile() {
+    if (!uploadedFile) {
+        alert("Please select a file to upload.");
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append('file', uploadedFile);
+    const statusDiv = document.getElementById('uploadStatus');
+    statusDiv.className = 'status';
+    statusDiv.innerHTML = '<div class="loading"></div> Uploading...';
+
+    try {
+        const response = await fetch(`${API_URL}/upload`, {
+            method: 'POST',
+            body: formData
+        });
+
+        const data = await response.json();
+        if (response.ok) {
+            statusDiv.className = 'status success';
+            statusDiv.innerText = data.message;
+        } else {
+            statusDiv.className = 'status error';
+            statusDiv.innerText = `Error: ${data.error}`;
+        }
+    } catch (error) {
+        statusDiv.className = 'status error';
+        statusDiv.innerText = `Error: ${error}`;
+    }
+}
+
+ function handleFileUpload(files) {
+    if (files.length > 0) {
+        uploadedFile = files[0]; // Store the file
+        document.getElementById('filenameDisplay').innerText = uploadedFile.name;
+        uploadFile();  // Directly upload the file
+    } else {
+        document.getElementById('filenameDisplay').innerText = "No file selected";
+        uploadedFile = null;  // Reset the uploaded file
+    }
+}
+
+
+async function runRegression() {
+    let modelSource = document.querySelector('input[name="regressionSource"]:checked').value;
+    let model = document.getElementById('regressionModel').value;
+    let customCode = document.getElementById('customRegressionCode').value;  // Get custom code
+    const resultsDiv = document.getElementById('regressionResults');
+    const explanationDiv = document.getElementById('regressionExplanation');  // New line
+    resultsDiv.innerHTML = '<div class="loading"></div> Running analysis...';
+    explanationDiv.innerHTML = ''; // Clear previous explanation
+    document.getElementById('downloadRegressionBtn').style.display = 'none';
+
+
+    try {
+        const response = await fetch(`${API_URL}/regression`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ modelSource: modelSource, model: model, customCode: customCode }) // Send model source and code
+        });
+        const data = await response.json();
+
+        if (response.ok) {
+            let resultsHTML = '<h3>Results</h3>';
+            for (const key in data.results) {  // Access results within data object
+                resultsHTML += `<p><span>${key}:</span> <span>${data.results[key].toFixed(4)}</span></p>`; //Access results within data object
+            }
+
+            resultsDiv.innerHTML = resultsHTML; // Update only the results section
+
+            // Add the explanation to the separate explanation section
+            explanationDiv.innerHTML = `<h3>Explanation</h3><p>${data.explanation}</p>`;
+            document.getElementById('downloadRegressionBtn').style.display = 'block';
+
+        } else {
+            resultsDiv.innerHTML = `<div class="status error">Error: ${data.error}<br><pre>${data.trace || ''}</pre></div>`;
+            explanationDiv.innerHTML = ''; // Clear if there's an error
+            document.getElementById('downloadRegressionBtn').style.display = 'none';
+
+
+        }
+    } catch (error) {
+        resultsDiv.innerHTML = `<div class="status error">Error: ${error}</div>`;
+        explanationDiv.innerHTML = ''; // Clear if there's an error
+        document.getElementById('downloadRegressionBtn').style.display = 'none';
+
+    }
+}
+
+async function runClassification() {
+    let modelSource = document.querySelector('input[name="classificationSource"]:checked').value;
+    let model = document.getElementById('classificationModel').value;
+    let customCode = document.getElementById('customClassificationCode').value;  // Get custom code
+
+    const resultsDiv = document.getElementById('classificationResults');
+    const explanationDiv = document.getElementById('classificationExplanation');
+    const confusionMatrixDiv = document.getElementById('confusionMatrix');
+
+    resultsDiv.innerHTML = '<div class="loading"></div> Running analysis...';
+    explanationDiv.innerHTML = '';
+    confusionMatrixDiv.innerHTML = ''; //Clear
+    document.getElementById('downloadClassificationBtn').style.display = 'block';
+
+    try {
+        const response = await fetch(`${API_URL}/classification`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ modelSource: modelSource, model: model, customCode: customCode }) // Send model source and code
+        });
+        const data = await response.json();
+
+        if (response.ok) {
+            let resultsHTML = '<h3>Results</h3>'; //Added Header
+            for (const key in data.metrics) {
+                resultsHTML += `<p>${key}: ${data.metrics[key].toFixed(4)}</p>`;
+            }
+
+            document.getElementById('classificationResults').innerHTML = resultsHTML;
+
+
+            const confusionMatrixImage = document.createElement('img');
+            confusionMatrixImage.src = `data:image/png;base64,${data.confusion_matrix}`;
+            document.getElementById('confusionMatrix').innerHTML = '<h3>Confusion Matrix</h3>'; // Title Before
+            document.getElementById('confusionMatrix').appendChild(confusionMatrixImage);
+
+             // Add the explanation -  Using the existing .explanation-container class
+            explanationDiv.innerHTML = `<h3>Explanation</h3><p>${data.explanation}</p>`;
+            document.getElementById('downloadClassificationBtn').style.display = 'block';
+
+        } else {
+           document.getElementById('classificationResults').innerHTML = `<div class="status error">Error: ${data.error}<br><pre>${data.trace || ''}</pre></div>`;
+
+            document.getElementById('confusionMatrix').innerHTML = '';
+            explanationDiv.innerHTML = '';
+            document.getElementById('downloadClassificationBtn').style.display = 'none';
+
+        }
+    } catch (error) {
+        document.getElementById('classificationResults').innerText = `Error: ${error}`;
+        document.getElementById('confusionMatrix').innerHTML = '';
+        explanationDiv.innerHTML = '';
+        document.getElementById('downloadClassificationBtn').style.display = 'none';
+
+    }
+}
+
+async function runClustering() {
+    const resultsDiv = document.getElementById('clusteringResults');
+    resultsDiv.innerHTML = '<div class="loading"></div> Running analysis...';
+    try {
+        const response = await fetch(`${API_URL}/clustering`, {
+            method: 'GET'
+        });
+        const data = await response.json();
+
+        if (response.ok) {
+            let analysisHTML = '<h3>Cluster Analysis (Means)</h3>';
+            for (const cluster in data.cluster_analysis) {
+                analysisHTML += `<p><b>Cluster ${cluster}:</b></p>`;
+                for (const feature in data.cluster_analysis[cluster]) {
+                    analysisHTML += `<p>  ${feature}: ${data.cluster_analysis[cluster][feature].toFixed(4)}</p>`;
+                }
+            }
+            document.getElementById('clusteringResults').innerHTML = analysisHTML;
+
+            const clusterDistImage = document.createElement('img');
+            clusterDistImage.src = `data:image/png;base64,${data.cluster_distribution_plot}`;
+            document.getElementById('clusterDistribution').innerHTML = '';
+            document.getElementById('clusterDistribution').appendChild(clusterDistImage);
+
+            let boxPlotsHTML = '<h3>Box Plots</h3>';
+            for (const col in data.box_plot_images) {
+                boxPlotsHTML += `<h4>${col}</h4>`;
+                const boxPlotImage = document.createElement('img');
+                boxPlotImage.src = `data:image/png;base64,${data.box_plot_images[col]}`;
+                boxPlotsHTML += '<div style="display: inline-block;">';
+                boxPlotsHTML += boxPlotImage.outerHTML;
+                boxPlotsHTML += '</div>';
+            }
+            document.getElementById('boxPlots').innerHTML = boxPlotsHTML;
+
+            let distinctiveFeaturesHTML = '<h3>Distinctive Features</h3>';
+            for (let i = 0; i < 3; i++) {
+                distinctiveFeaturesHTML += `<p><b>Cluster ${i}:</b> ${data.distinctive_features[i].join(', ')}</p>`;
+            }
+            document.getElementById('distinctiveFeatures').innerHTML = distinctiveFeaturesHTML;
+
+            distinctiveFeatures = data.distinctive_features;
+            numericalColumns = data.numerical_cols;
+            generateDataInputFields(numericalColumns);
+        } else {
+            document.getElementById('clusteringResults').innerText = `Error: ${
+                data.error}`;
+            document.getElementById('clusterDistribution').innerHTML = '';
+            document.getElementById('boxPlots').innerHTML = '';
+            document.getElementById('distinctiveFeatures').innerHTML = '';
+        }
+    } catch (error) {
+        document.getElementById('clusteringResults').innerText = `Error: ${error}`;
+        document.getElementById('clusterDistribution').innerHTML = '';
+        document.getElementById('boxPlots').innerHTML = '';
+        document.getElementById('distinctiveFeatures').innerHTML = '';
+    }
+}
+
+function showSection(sectionId) {
+    // Hide all sections
+    const sections = document.querySelectorAll('.analysis-section');
+    sections.forEach(section => section.classList.remove('active'));
+
+    // Show the selected section
+    const section = document.getElementById(sectionId);
+    if (section) {
+        section.classList.add('active');
+    }
+
+    // Update navbar title
+    let title = "Dashboard Overview";
+    if (sectionId === "regressionSection") title = "Regression Analysis";
+    if (sectionId === "classificationSection") title = "Classification Analysis";
+    if (sectionId === "clusteringSection") title = "Clustering Analysis";
+    if (sectionId === "datasetSection") title = "Dataset Creation";
+    if (sectionId === "plottingSection") title = "Plotting Analysis";
+    document.getElementById("navbarTitle").innerText = title;
+}
+
+function toggleDropdown(element) {
+    const dropdownContainer = element.parentNode;
+    dropdownContainer.classList.toggle('active');
+}
+
+function selectRegressionOption(element, value) {
+    const dropdownContainer = element.parentNode.parentNode;
+    const selectedOption = dropdownContainer.querySelector('.selected-option');
+    selectedOption.innerText = value;
+    dropdownContainer.classList.remove('active');
+
+    // Set the value of the hidden input field
+    const hiddenInput = dropdownContainer.querySelector('input[type="hidden"]');
+    hiddenInput.value = value;
+
+    // Display algorithm code
+    document.getElementById('regressionCodeDisplay').value = algorithmCodes[value] || '';
+}
+
+  function selectClassificationOption(element, value) {
+    const dropdownContainer = element.parentNode.parentNode;
+    const selectedOption = dropdownContainer.querySelector('.selected-option');
+    selectedOption.innerText = value;
+    dropdownContainer.classList.remove('active');
+
+    // Set the value of the hidden input field
+    const hiddenInput = dropdownContainer.querySelector('input[type="hidden"]');
+    hiddenInput.value = value;
+
+    // Display algorithm code
+    document.getElementById('classificationCodeDisplay').value = algorithmCodesss[value] || '';
+}
+
+
+// Close dropdown when clicking outside
+window.addEventListener('click', function(event) {
+    if (!event.target.matches('.selected-option')) {
+        const dropdowns = document.querySelectorAll('.dropdown-container');
+        dropdowns.forEach(dropdown => {
+            if (dropdown.classList.contains('active')) {
+                dropdown.classList.remove('active');
+            }
+        });
+    }
+});
+
+ function toggleRegressionInput() {
+        const source = document.querySelector('input[name="regressionSource"]:checked').value;
+        document.getElementById('predefinedRegressionInput').style.display = (source === 'predefined') ? 'block' : 'none';
+        document.getElementById('customRegressionInput').style.display = (source === 'custom') ? 'block' : 'none';
+    }
+
+     function toggleClassificationInput() {
+        const source = document.querySelector('input[name="classificationSource"]:checked').value;
+        document.getElementById('predefinedClassificationInput').style.display = (source === 'predefined') ? 'block' : 'none';
+        document.getElementById('customClassificationInput').style.display = (source === 'custom') ? 'block' : 'none';
+    }
+
+function generateDataInputFields(numericalCols) {
+  const dataInputFields = document.getElementById('dataInputFields');
+  dataInputFields.innerHTML = '';
+
+  numericalCols.forEach(col => {
+     const inputRow = document.createElement('div');
+     inputRow.className = 'data-input-row';
+
+     const label = document.createElement('label');
+     label.className = 'data-input-label';
+     label.innerText = col;
+     label.htmlFor = `new_${col}`;  // Ensure label is associated with input
+
+     const input = document.createElement('input');
+     input.type = 'number'; //For numeric input
+     input.className = 'data-input';
+     input.id = `new_${col}`;  // Unique ID
+     input.name = col;
+     inputRow.appendChild(label);
+     inputRow.appendChild(input);
+
+     dataInputFields.appendChild(inputRow);
+  });
+}
+async function downloadRegressionReport() {
+const resultsDiv = document.getElementById('regressionResults').innerText;
+const explanationDiv = document.getElementById('regressionExplanation').innerText;
+
+// Create a new document
+const doc = new docx.Document({
+  sections: [{
+      children: [
+          new docx.Paragraph({
+              text: "Regression Analysis Report",
+              heading: docx.HeadingLevel.HEADING_1,
+              alignment: docx.AlignmentType.CENTER,
+              spacing: { after: 200 },
+          }),
+           new docx.Paragraph({
+              text: "Results",
+              heading: docx.HeadingLevel.HEADING_2,
+          }),
+          new docx.Paragraph({
+              text: resultsDiv,
+          }),
+           new docx.Paragraph({
+              text: "Explanation",
+              heading: docx.HeadingLevel.HEADING_2,
+          }),
+          new docx.Paragraph({
+              text: explanationDiv,
+          }),
+      ],
+  }]
+});
+
+// Generate and download the document
+docx.Packer.toBlob(doc).then((blob) => {
+    saveAs(blob, "Regression_Analysis_Report.docx");
+});
+}
+
+
+async function downloadClassificationReport() {
+    // Ensure the docx library is loaded
+    if (typeof docx === 'undefined') {
+        alert("docx library not loaded!");
+        return;
+    }
+
+    // Get the classification results and explanation
+    const resultsSection = document.getElementById("classificationResults");
+    const explanationSection = document.getElementById("classificationExplanation");
+    const confusionMatrixImg = document.getElementById("confusionMatrix")?.querySelector("img");
+
+    if (!resultsSection || !explanationSection) {
+        alert("Results or explanation section not found.");
+        return;
+    }
+
+    const resultsText = resultsSection.innerText;
+    const explanationText = explanationSection.innerText;
+
+    // Check if results and explanation are available
+    if (!resultsText.trim() || !explanationText.trim()) {
+        alert("No results or explanation available to download.");
+        return;
+    }
+
+    // Create the document
+    const { Document, Packer, Paragraph, TextRun, ImageRun } = docx;
+
+    let docChildren = [
+        new Paragraph({
+            children: [
+                new TextRun({
+                    text: "Classification Analysis Report",
+                    bold: true,
+                    size: 32,
+                }),
+            ],
+            heading: "Title",
+            spacing: { after: 300 },
+        }),
+        new Paragraph({
+            children: [
+                new TextRun({
+                    text: "Results:",
+                    bold: true,
+                    size: 28,
+                }),
+            ],
+            spacing: { after: 200 },
+        }),
+        new Paragraph({
+            children: [
+                new TextRun({
+                    text: resultsText,
+                    size: 24,
+                }),
+            ],
+            spacing: { after: 300 },
+        }),
+        new Paragraph({
+            children: [
+                new TextRun({
+                    text: "Explanation:",
+                    bold: true,
+                    size: 28,
+                }),
+            ],
+            spacing: { after: 200 },
+        }),
+        new Paragraph({
+            children: [
+                new TextRun({
+                    text: explanationText,
+                    size: 24,
+                }),
+            ],
+        }),
+    ];
+
+    // Add Confusion Matrix if available
+    if (confusionMatrixImg) {
+        try {
+            const response = await fetch(confusionMatrixImg.src);
+            const imageBlob = await response.blob();
+            const imageBuffer = await imageBlob.arrayBuffer();
+
+            docChildren.push(
+                new Paragraph({
+                    children: [
+                        new TextRun({
+                            text: "Confusion Matrix:",
+                            bold: true,
+                            size: 28,
+                        }),
+                    ],
+                    spacing: { after: 200 },
+                }),
+                new Paragraph({
+                    children: [
+                        new ImageRun({
+                            data: imageBuffer,
+                            transformation: { width: 500, height: 300 },
+                        }),
+                    ],
+                    spacing: { after: 300 },
+                })
+            );
+        } catch (error) {
+            console.error("Error loading confusion matrix image:", error);
+        }
+    }
+
+    const doc = new Document({ sections: [{ properties: {}, children: docChildren }] });
+
+    // Generate the document
+    Packer.toBlob(doc).then((blob) => {
+        saveAs(blob, "Classification_Analysis_Report.docx");
+    });
+}
+
+// Helper function to save the file
+function saveAs(blob, fileName) {
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = fileName;
+    link.click();
+    URL.revokeObjectURL(link.href);
+}
+
+async function addNewData() {
+const newData = {};
+let hasMissing = false;
+
+numericalColumns.forEach(col => {
+    const inputElement = document.getElementById(`new_${col}`);
+    const value = parseFloat(inputElement.value);
+    if (isNaN(value)) {
+        alert(`Please enter a valid number for ${col}`);
+        hasMissing = true;
+        return;
+    }
+    newData[col] = value;
+});
+
+if (hasMissing) return; // Don't proceed if there are validation errors
+
+const scatterPlotsDiv = document.getElementById('scatterPlots');
+scatterPlotsDiv.innerHTML = '<div class="loading"></div> Generating plots...';
+
+try {
+    const response = await fetch(`${API_URL}/add_data`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(newData)
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+        let plotsHTML = '';
+        for (const plotName in data.scatter_plot_images) {
+            plotsHTML += `<div><h4>${plotName.replace(/_/g, 'vs')}</h4><img src="data:image/png;base64,${data.scatter_plot_images[plotName]}" alt="${plotName}"></div>`;
+        }
+        scatterPlotsDiv.innerHTML = plotsHTML;
+
+        // Display the explanation
+        const explanationDiv = document.createElement('div');
+        explanationDiv.className = 'explanation-container';  // Use consistent styling
+        explanationDiv.innerHTML = `<h3>Explanation</h3><p>${data.explanation}</p>`;
+        scatterPlotsDiv.appendChild(explanationDiv); // Append to scatterPlotsDiv or another appropriate location
+
+    } else {
+        scatterPlotsDiv.innerHTML = `<div class="status error">Error: ${data.error}<br><pre>${data.trace || ''}</pre></div>`;
+    }
+} catch (error) {
+    scatterPlotsDiv.innerHTML = `<div class="status error">Error: ${error}</div>`;
+}
+}
+
+// Handle dropdown selection for dataset type
+function selectDatasetOption(element, datasetType) {
+    document.querySelector(".selected-option").innerText = datasetType;
+    document.getElementById("datasetType").value = datasetType;
+
+    // Show/hide respective sections
+    document.getElementById("randomDatasetInput").style.display = datasetType === "Random Data" ? "block" : "none";
+    document.getElementById("customDatasetInput").style.display = datasetType === "Custom Data" ? "block" : "none";
+}
+// Function to update column input fields dynamically for custom dataset
+function updateCustomColumnInputs() {
+    let numCols = document.getElementById("customNumColumns").value;
+    let container = document.getElementById("customColumnNamesContainer");
+
+    container.innerHTML = `<label>Column Names & Data Types:</label>`;
+
+    for (let i = 0; i < numCols; i++) {
+        let div = document.createElement("div");
+        div.className = "column-row";
+
+        let input = document.createElement("input");
+        input.type = "text";
+        input.className = "custom-column-name";
+        input.placeholder = `Column ${i + 1}`;
+
+        let select = document.createElement("select");
+        select.className = "custom-column-type";
+        select.innerHTML = `
+            <option value="integer">Integer</option>
+            <option value="float">Float</option>
+            <option value="string">String</option>
+            <option value="boolean">Boolean</option>
+            <option value="date">Date</option>
+        `;
+
+        div.appendChild(input);
+        div.appendChild(select);
+        container.appendChild(div);
+    }
+}
+
+// Function to create a custom data entry table
+function createCustomDataTable() {
+    let numCols = document.getElementById("customNumColumns").value;
+    let columnInputs = document.querySelectorAll(".custom-column-name");
+    let columnTypes = document.querySelectorAll(".custom-column-type");
+
+    let columnNames = [];
+    let columnDataTypes = [];
+
+    for (let i = 0; i < numCols; i++) {
+        columnNames.push(columnInputs[i].value || `Column ${i + 1}`);
+        columnDataTypes.push(columnTypes[i].value);
+    }
+
+    // Show the table container
+    document.getElementById("customDatasetTableContainer").style.display = "block";
+
+    // Create table headers
+    let tableHeader = document.getElementById("customTableHeader");
+    tableHeader.innerHTML = "";
+    columnNames.forEach(name => {
+        let th = document.createElement("th");
+        th.innerText = name;
+        tableHeader.appendChild(th);
+    });
+
+    // Create empty table body with input fields
+    let tableBody = document.getElementById("customTableBody");
+    tableBody.innerHTML = "";
+
+    for (let i = 0; i < 5; i++) {  // Default 5 rows for manual entry
+        let row = tableBody.insertRow();
+        for (let j = 0; j < numCols; j++) {
+            let cell = row.insertCell();
+            let input = document.createElement("input");
+            input.type = "text";
+            input.className = "custom-data-input";
+            input.dataset.type = columnDataTypes[j];  // Store the data type
+            cell.appendChild(input);
+        }
+    }
+}
+
+// Function to save custom dataset
+function saveCustomDataset() {
+    let table = document.getElementById("customDatasetTable");
+    let numRows = table.rows.length;
+    let numCols = table.rows[0].cells.length;
+
+    let dataset = [];
+
+    for (let i = 1; i < numRows; i++) { // Skip header row
+        let row = [];
+        let cells = table.rows[i].cells;
+
+        for (let j = 0; j < numCols; j++) {
+            let input = cells[j].querySelector("input");
+            let value = input.value.trim();
+            let type = input.dataset.type;
+
+            if (type === "integer") value = parseInt(value) || 0;
+            if (type === "float") value = parseFloat(value) || 0.0;
+            if (type === "boolean") value = value.toLowerCase() === "true" ? "TRUE" : "FALSE";
+            if (type === "date") value = new Date(value).toISOString().split("T")[0]; // Convert to YYYY-MM-DD
+
+            row.push(value);
+        }
+        dataset.push(row.join(","));
+    }
+
+    alert("Dataset saved successfully!");
+}
+
+// Function to download the dataset as a CSV file
+function downloadCustomDataset() {
+    let table = document.getElementById("customDatasetTable");
+    let csvData = [];
+
+    // Get header row
+    let headers = [];
+    for (let th of table.rows[0].cells) {
+        headers.push(th.innerText);
+    }
+    csvData.push(headers.join(","));
+
+    // Get data rows
+    for (let i = 1; i < table.rows.length; i++) {
+        let row = [];
+        let cells = table.rows[i].cells;
+        for (let j = 0; j < cells.length; j++) {
+            let input = cells[j].querySelector("input");
+            row.push(input.value.trim());
+        }
+        csvData.push(row.join(","));
+    }
+
+    let csvContent = "data:text/csv;charset=utf-8," + csvData.join("\n");
+    let encodedUri = encodeURI(csvContent);
+
+    let link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "custom_dataset.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+// Adjust column input fields dynamically
+function updateColumnInputs() {
+    const numCols = document.getElementById("numColumns").value;
+    const container = document.getElementById("columnNamesContainer");
+    container.innerHTML = '<label>Column Names:</label>';
+
+    for (let i = 0; i < numCols; i++) {
+        let input = document.createElement("input");
+        input.type = "text";
+        input.className = "column-name";
+        input.placeholder = `Column ${i + 1}`;
+        container.appendChild(input);
+    }
+}
+// Function to update column input fields dynamically
+function updateColumnInputs() {
+    let numCols = document.getElementById("numColumns").value;
+    let container = document.getElementById("columnNamesContainer");
+
+    container.innerHTML = `<label>Column Names & Data Types:</label>`;
+
+    for (let i = 0; i < numCols; i++) {
+        let div = document.createElement("div");
+        div.className = "column-row";
+
+        let input = document.createElement("input");
+        input.type = "text";
+        input.className = "column-name";
+        input.placeholder = `Column ${i + 1}`;
+
+        let select = document.createElement("select");
+        select.className = "column-type";
+        select.innerHTML = `
+            <option value="integer">Integer</option>
+            <option value="float">Float</option>
+            <option value="string">String</option>
+            <option value="boolean">Boolean</option>
+            <option value="date">Date</option>
+        `;
+
+        div.appendChild(input);
+        div.appendChild(select);
+        container.appendChild(div);
+    }
+}
+
+// Function to generate random dataset
+function generateRandomDataset() {
+    let numCols = document.getElementById("numColumns").value;
+    let numRows = document.getElementById("numRows").value;
+
+    let columnInputs = document.querySelectorAll(".column-name");
+    let columnTypes = document.querySelectorAll(".column-type");
+
+    let columnNames = [];
+    let columnDataTypes = [];
+
+    for (let i = 0; i < numCols; i++) {
+        columnNames.push(columnInputs[i].value || `Column ${i + 1}`);
+        columnDataTypes.push(columnTypes[i].value);
+    }
+
+    let dataset = [columnNames.join(",")]; // Add headers
+
+    for (let i = 0; i < numRows; i++) {
+        let row = [];
+        for (let j = 0; j < numCols; j++) {
+            row.push(generateRandomValue(columnDataTypes[j]));
+        }
+        dataset.push(row.join(","));
+    }
+
+    displayDataset(dataset, columnNames);
+}
+
+// Function to generate random value based on type
+function generateRandomValue(type) {
+    switch (type) {
+        case "integer":
+            return Math.floor(Math.random() * 100);
+        case "float":
+            return (Math.random() * 100).toFixed(2);
+        case "string":
+            return generateRandomString(5);
+        case "boolean":
+            return Math.random() < 0.5 ? "TRUE" : "FALSE";
+        case "date":
+            return generateRandomDate();
+        default:
+            return "";
+    }
+}
+
+// Function to generate a random string
+function generateRandomString(length) {
+    let chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+    let result = "";
+    for (let i = 0; i < length; i++) {
+        result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return result;
+}
+
+// Function to generate a random date
+function generateRandomDate() {
+    let start = new Date(2020, 0, 1);
+    let end = new Date();
+    let randomDate = new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
+    return randomDate.toISOString().split("T")[0]; // Format as YYYY-MM-DD
+}
+
+// Function to display dataset in table format
+function displayDataset(dataset, columnNames) {
+    let table = document.getElementById("datasetTable");
+    table.innerHTML = "";
+
+    let headerRow = table.insertRow();
+    columnNames.forEach(name => {
+        let th = document.createElement("th");
+        th.innerText = name;
+        headerRow.appendChild(th);
+    });
+
+    dataset.slice(1).forEach(dataRow => {
+        let row = table.insertRow();
+        dataRow.split(",").forEach(value => {
+            let cell = row.insertCell();
+            cell.innerText = value;
+        });
+    });
+}
+
+// Function to download dataset as CSV
+function downloadDataset() {
+    let table = document.getElementById("datasetTable");
+    let csvData = [];
+
+    for (let i = 0; i < table.rows.length; i++) {
+        let row = [];
+        for (let j = 0; j < table.rows[i].cells.length; j++) {
+            row.push(table.rows[i].cells[j].innerText);
+        }
+        csvData.push(row.join(","));
+    }
+
+    let csvContent = "data:text/csv;charset=utf-8," + csvData.join("\n");
+    let encodedUri = encodeURI(csvContent);
+
+    let link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "random_dataset.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+function selectPlotOption(element, plotType) {
+    document.getElementById("plotModel").value = plotType;
+    document.querySelector(".selected-option").innerText = plotType;
+}
+
+</script>
+</body>
+</html>
